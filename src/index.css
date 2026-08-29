@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400..700&family=IBM+Plex+Mono:wght@400..600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ---- Brand palette ---- */
+  --color-ink: #0e2a2b;
+  --color-ink-soft: #294948;
+  --color-base: #f5f7f4;
+  --color-surface: #ffffff;
+  --color-teal: #0f7a6e;
+  --color-teal-deep: #0b5850;
+  --color-teal-tint: #e3f2ef;
+  --color-orange: #ff6b35;
+  --color-orange-deep: #d4531f;
+  --color-orange-tint: #ffece3;
+  --color-slate: #3b4a4a;
+  --color-slate-deep: #24302f;
+  --color-slate-tint: #eceff0;
+  --color-gold: #d4a94c;
+  --color-gold-deep: #ab8534;
+  --color-gold-tint: #faf3e2;
+  --color-danger: #d84c3e;
+  --color-success: #1f9d63;
+
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius-card: 1rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
