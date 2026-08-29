@@ -9,11 +9,18 @@ interface StageRingProps {
 }
 
 /**
- * The platform's signature device: a segmented ring where each arc is one
- * real stage of the RO/service pipeline (New -> Accepted -> Ongoing ->
- * Completed, or filtration stage 1-4). Filled arcs = stages passed.
+ * Segmented 3D glow ring where each arc is one
+ * real stage of the RO/service pipeline.
  */
-export function StageRing({ stages, activeIndex, size = 220, accent = "var(--color-teal)", centerLabel, centerSub, light = false }: StageRingProps) {
+export function StageRing({
+  stages,
+  activeIndex,
+  size = 220,
+  accent = "var(--color-teal)",
+  centerLabel,
+  centerSub,
+  light = false,
+}: StageRingProps) {
   const strokeWidth = size * 0.055;
   const radius = (size - strokeWidth) / 2;
   const cx = size / 2;
@@ -34,8 +41,14 @@ export function StageRing({ stages, activeIndex, size = 220, accent = "var(--col
   };
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative inline-flex items-center justify-center filter drop-shadow-sm" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Stage ${activeIndex + 1} of ${stages.length}: ${stages[activeIndex]}`}>
+        <defs>
+          <filter id={`glow-${size}`} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
         {stages.map((_, i) => {
           const start = i * (segmentDeg + gapDeg);
           const end = start + segmentDeg;
@@ -48,32 +61,50 @@ export function StageRing({ stages, activeIndex, size = 220, accent = "var(--col
               stroke={passed ? accent : "color-mix(in srgb, var(--color-ink) 8%, transparent)"}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
-              style={{ transition: "stroke 0.4s ease" }}
+              filter={passed ? `url(#glow-${size})` : undefined}
+              style={{ transition: "stroke 0.4s ease, filter 0.4s ease" }}
             />
           );
         })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
         {centerLabel && (
-          <span className={`font-display text-2xl font-semibold leading-tight ${light ? "text-white" : "text-ink"}`}>{centerLabel}</span>
+          <span className={`font-display text-2xl font-semibold leading-tight ${light ? "text-white" : "text-ink"}`}>
+            {centerLabel}
+          </span>
         )}
-        {centerSub && <span className={`mt-1 text-xs font-medium ${light ? "text-white/60" : "text-ink-soft/70"}`}>{centerSub}</span>}
+        {centerSub && (
+          <span className={`mt-1 text-xs font-medium ${light ? "text-white/70" : "text-ink-soft/70"}`}>
+            {centerSub}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
 /** Compact horizontal version for use inside cards/lists. */
-export function StageBar({ stages, activeIndex, accent = "var(--color-teal)" }: { stages: string[]; activeIndex: number; accent?: string }) {
+export function StageBar({
+  stages,
+  activeIndex,
+  accent = "var(--color-teal)",
+}: {
+  stages: string[];
+  activeIndex: number;
+  accent?: string;
+}) {
   return (
     <div className="flex w-full items-center gap-1.5" role="img" aria-label={`Stage ${activeIndex + 1} of ${stages.length}: ${stages[activeIndex]}`}>
       {stages.map((label, i) => (
         <div key={label} className="flex flex-1 flex-col items-center gap-1.5">
           <div
-            className="h-1.5 w-full rounded-full transition-colors duration-300"
-            style={{ backgroundColor: i <= activeIndex ? accent : "color-mix(in srgb, var(--color-ink) 8%, transparent)" }}
+            className="h-1.5 w-full rounded-full transition-all duration-300 shadow-sm"
+            style={{
+              backgroundColor: i <= activeIndex ? accent : "color-mix(in srgb, var(--color-ink) 8%, transparent)",
+              boxShadow: i <= activeIndex ? `0 0 8px ${accent}66` : "none",
+            }}
           />
-          <span className={`text-[10px] font-medium uppercase tracking-wide ${i <= activeIndex ? "text-ink" : "text-ink-soft/50"}`}>
+          <span className={`text-[10px] font-medium uppercase tracking-wide ${i <= activeIndex ? "text-ink font-semibold" : "text-ink-soft/50"}`}>
             {label}
           </span>
         </div>

@@ -75,7 +75,7 @@ export function VendorLeadsPage() {
               <Link to={`/vendor/leads/${lead.id}`} className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-ink">{lead.customerName}</p>
-                  <Badge tone={leadStatusTone[lead.status] ?? "neutral"}>{lead.status.replaceAll("_", " ")}</Badge>
+                  <Badge tone={leadStatusTone[lead.status] ?? "neutral"}>{lead.status.replace(/_/g, " ")}</Badge>
                 </div>
                 <p className="mt-1 text-sm text-ink-soft/70">{lead.serviceType ?? "Service"} · {lead.area ?? "Area not shared"}</p>
                 {lead.issue && <p className="mt-1 text-sm text-ink-soft/60">{lead.issue}</p>}

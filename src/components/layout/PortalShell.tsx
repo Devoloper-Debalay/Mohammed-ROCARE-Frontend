@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export interface NavItem {
   to: string;
@@ -34,11 +35,14 @@ const accentBg: Record<PortalShellProps["accent"], string> = {
 
 export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta, onLogout, children }: PortalShellProps) {
   return (
-    <div className="flex min-h-screen bg-base">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-ink/[0.06] bg-surface px-4 py-6">
-        <div className="px-2">
-          <Logo size={28} />
-          <p className={`mt-1 text-[11px] font-semibold uppercase tracking-widest ${accentText[accent]}`}>{portalLabel}</p>
+    <div className="flex min-h-screen bg-base transition-colors duration-200">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-ink/[0.08] bg-surface px-4 py-6">
+        <div className="flex items-center justify-between px-2">
+          <div>
+            <Logo size={28} />
+            <p className={`mt-1 text-[11px] font-semibold uppercase tracking-widest ${accentText[accent]}`}>{portalLabel}</p>
+          </div>
+          <ThemeToggle />
         </div>
 
         <nav className="mt-8 flex flex-1 flex-col gap-1">
@@ -59,12 +63,12 @@ export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta
           ))}
         </nav>
 
-        <div className="mt-auto rounded-xl border border-ink/[0.06] p-3">
+        <div className="mt-auto rounded-xl border border-ink/[0.08] bg-base/50 p-3">
           <p className="truncate text-sm font-semibold text-ink">{userLabel}</p>
           {userMeta && <p className="truncate text-xs text-ink-soft/70">{userMeta}</p>}
           <button
             onClick={onLogout}
-            className="mt-2 w-full rounded-lg border border-ink/10 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:bg-ink/[0.04]"
+            className="mt-2 w-full rounded-lg border border-ink/10 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:bg-ink/[0.06] hover:text-ink"
           >
             Log out
           </button>

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { LandingPage } from "@/portals/landing/LandingPage";
 
 import { CustomerLoginPage } from "@/portals/customer/CustomerLoginPage";
@@ -33,6 +34,8 @@ import { AdminVendorsPage } from "@/portals/admin/AdminVendorsPage";
 import { AdminLeadsPage } from "@/portals/admin/AdminLeadsPage";
 import { AdminOrdersPage } from "@/portals/admin/AdminOrdersPage";
 import { AdminCatalogPage } from "@/portals/admin/AdminCatalogPage";
+import { AdminPaymentsPage } from "@/portals/admin/AdminPaymentsPage";
+import { AdminWalletPage } from "@/portals/admin/AdminWalletPage";
 import { AdminComplaintsPage } from "@/portals/admin/AdminComplaintsPage";
 import { SuperAdminDashboardPage } from "@/portals/admin/SuperAdminDashboardPage";
 import { SuperAdminBranchesPage } from "@/portals/admin/SuperAdminBranchesPage";
@@ -40,6 +43,7 @@ import { SuperAdminAdminsPage } from "@/portals/admin/SuperAdminAdminsPage";
 import { SuperAdminUsersPage } from "@/portals/admin/SuperAdminUsersPage";
 import { SuperAdminAuditLogsPage } from "@/portals/admin/SuperAdminAuditLogsPage";
 import { SuperAdminSettingsPage } from "@/portals/admin/SuperAdminSettingsPage";
+import { SuperAdminReportsPage } from "@/portals/admin/SuperAdminReportsPage";
 
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
@@ -117,7 +121,9 @@ function StaffRoutes() {
         <Route path="vendors" element={<AdminVendorsPage />} />
         <Route path="leads" element={<AdminLeadsPage />} />
         <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="payments" element={<AdminPaymentsPage />} />
         <Route path="catalog" element={<AdminCatalogPage />} />
+        <Route path="wallet" element={<AdminWalletPage />} />
         <Route path="complaints" element={<AdminComplaintsPage />} />
 
         <Route path="super-admin" element={isSuperAdmin ? <SuperAdminDashboardPage /> : <Navigate to="/staff/dashboard" replace />} />
@@ -126,6 +132,7 @@ function StaffRoutes() {
         <Route path="super-admin/users" element={isSuperAdmin ? <SuperAdminUsersPage /> : <Navigate to="/staff/dashboard" replace />} />
         <Route path="super-admin/audit-logs" element={isSuperAdmin ? <SuperAdminAuditLogsPage /> : <Navigate to="/staff/dashboard" replace />} />
         <Route path="super-admin/settings" element={isSuperAdmin ? <SuperAdminSettingsPage /> : <Navigate to="/staff/dashboard" replace />} />
+        <Route path="super-admin/reports" element={isSuperAdmin ? <SuperAdminReportsPage /> : <Navigate to="/staff/dashboard" replace />} />
       </Route>
       <Route path="*" element={<Navigate to={isAuthenticated ? (isSuperAdmin ? "/staff/super-admin" : "/staff/dashboard") : "/staff/login"} replace />} />
     </Routes>
@@ -134,16 +141,18 @@ function StaffRoutes() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/customer/*" element={<CustomerRoutes />} />
-          <Route path="/vendor/*" element={<VendorRoutes />} />
-          <Route path="/staff/*" element={<StaffRoutes />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/customer/*" element={<CustomerRoutes />} />
+            <Route path="/vendor/*" element={<VendorRoutes />} />
+            <Route path="/staff/*" element={<StaffRoutes />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }

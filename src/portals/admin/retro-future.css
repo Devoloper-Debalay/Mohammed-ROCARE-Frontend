@@ -1,0 +1,312 @@
+/* Retro Future Theme Styles */
+@keyframes retroGridMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+@keyframes retroScanMove {
+  0% { left: -100%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@keyframes retroOrbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(50px, -30px) scale(1.1); }
+  50% { transform: translate(-30px, -50px) scale(0.9); }
+  75% { transform: translate(-50px, 30px) scale(1.05); }
+}
+
+@keyframes retroChromeShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes retroLogoRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes retroGlowRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes retroNeonPulse {
+  0% { filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 255, 0.6)); }
+  100% { filter: brightness(1.3) drop-shadow(0 0 25px rgba(0, 255, 255, 0.9)); }
+}
+
+@keyframes retroBorderShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.retro-bg-container {
+  background: linear-gradient(135deg, #0a0a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.y2k-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(0, 255, 255, 0.15) 0%, transparent 50%);
+}
+
+.grid-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 0, 0.25) 1px, transparent 0);
+  background-size: 40px 40px;
+  animation: retroGridMove 20s linear infinite;
+}
+
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  animation: retroScanMove 8s linear infinite;
+}
+
+.scan-1 {
+  top: 20%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
+  animation-delay: 0s;
+}
+
+.scan-2 {
+  top: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.8), transparent);
+  animation-delay: -3s;
+}
+
+.scan-3 {
+  top: 80%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 0, 0.8), transparent);
+  animation-delay: -6s;
+}
+
+.retro-orb {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: retroOrbFloat 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.orb-1 {
+  top: 10%;
+  left: 10%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 0, 255, 0.3), transparent 70%);
+}
+
+.orb-2 {
+  top: 65%;
+  right: 10%;
+  background: radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.3), transparent 70%);
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  bottom: 10%;
+  left: 30%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 0, 0.25), transparent 70%);
+  animation-delay: -10s;
+}
+
+/* Future Card */
+.future-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: 44px 36px;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    0 10px 30px rgba(255, 0, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.future-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+  background-size: 400% 400%;
+  animation: retroChromeShift 6s ease-in-out infinite;
+  border-radius: 28px;
+  z-index: -2;
+}
+
+.future-card::after {
+  content: '';
+  position: absolute;
+  inset: 2.5px;
+  background: linear-gradient(145deg, rgba(10, 10, 36, 0.96), rgba(24, 24, 56, 0.92));
+  border-radius: 26px;
+  z-index: -1;
+}
+
+/* Chrome Header & Logo */
+.logo-chrome {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(145deg, #e6e6fa, #c0c0ff);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  animation: retroLogoRotate 10s linear infinite;
+}
+
+.chrome-inner {
+  position: relative;
+  z-index: 2;
+  animation: retroLogoRotate 10s linear infinite reverse;
+}
+
+.chrome-glow {
+  position: absolute;
+  inset: -6px;
+  background: conic-gradient(from 0deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+  border-radius: 50%;
+  animation: retroGlowRotate 4s linear infinite;
+  filter: blur(10px);
+  z-index: 0;
+}
+
+.title-chrome {
+  background: linear-gradient(45deg, #f1f5f9, #c0c0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+}
+
+.title-neon {
+  background: linear-gradient(45deg, #ff00ff, #00ffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: retroNeonPulse 2s ease-in-out infinite alternate;
+}
+
+/* Retro Form Fields */
+.field-chrome {
+  position: relative;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.field-chrome:focus-within {
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.35);
+  border-color: rgba(0, 255, 255, 0.6);
+}
+
+.chrome-border {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+  background-size: 400% 400%;
+  animation: retroBorderShift 4s ease-in-out infinite;
+  border-radius: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.field-chrome:focus-within .chrome-border {
+  opacity: 0.8;
+}
+
+.field-hologram {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+  transition: width 0.3s ease;
+  z-index: 5;
+}
+
+.field-chrome:focus-within .field-hologram {
+  width: 100%;
+}
+
+/* Retro Neon Action Button */
+.retro-button {
+  position: relative;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(145deg, #ff00ff, #00ffff);
+  border: none;
+  border-radius: 14px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 
+    0 10px 25px rgba(255, 0, 255, 0.4),
+    0 0 20px rgba(0, 255, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.retro-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 35px rgba(255, 0, 255, 0.6),
+    0 0 30px rgba(0, 255, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.retro-button:active {
+  transform: translateY(1px);
+}
+
+.retro-button .button-chrome {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.retro-button:hover .button-chrome {
+  transform: translateX(100%);
+}
+
+.retro-divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 20px;
+  gap: 12px;
+}
+
+.divider-chrome {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
