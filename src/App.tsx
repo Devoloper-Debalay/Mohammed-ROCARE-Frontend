@@ -13,6 +13,7 @@ import { CustomerOrdersPage } from "@/portals/customer/CustomerOrdersPage";
 import { CustomerServiceRequestsPage } from "@/portals/customer/CustomerServiceRequestsPage";
 import { CustomerComplaintsPage } from "@/portals/customer/CustomerComplaintsPage";
 import { CustomerNotificationsPage } from "@/portals/customer/CustomerNotificationsPage";
+import { CustomerOffersPage } from "@/portals/customer/CustomerOffersPage";
 
 import { VendorLoginPage } from "@/portals/vendor/VendorLoginPage";
 import { VendorSignupPage } from "@/portals/vendor/VendorSignupPage";
@@ -66,6 +67,7 @@ function CustomerRoutes() {
         <Route path="catalog" element={<CustomerCatalogPage />} />
         <Route path="cart" element={<CustomerCartPage />} />
         <Route path="orders" element={<CustomerOrdersPage />} />
+        <Route path="offers" element={<CustomerOffersPage />} />
         <Route path="addresses" element={<CustomerAddressesPage />} />
         <Route path="service-requests" element={<CustomerServiceRequestsPage />} />
         <Route path="complaints" element={<CustomerComplaintsPage />} />
