@@ -21,19 +21,31 @@ export function VendorLoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await vendorApi.post<ApiSuccessBody<{ accessToken: string; refreshToken?: string; vendorId: string; role: string }>>(
+      const res = await vendorApi.post<ApiSuccessBody<any>>(
         "/vendor/auth/login",
         { identifier, password }
       );
-      const data = res.data.data!;
+      const rawData = res.data?.data ?? res.data;
+      const token = rawData?.accessToken || rawData?.token;
+      const refreshToken = rawData?.refreshToken;
+      if (!token) {
+        throw new Error("Invalid response from server: Authentication token missing.");
+      }
       // Login only returns tokens + id — fetch the full profile to populate the session.
       const profileRes = await axios.get<ApiSuccessBody<any>>(`${vendorApi.defaults.baseURL}/vendor/profile`, {
-        headers: { Authorization: `Bearer ${data.accessToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setSession({ token: data.accessToken, refreshToken: data.refreshToken, user: profileRes.data.data });
+      const profileData = profileRes.data?.data ?? profileRes.data;
+      setSession({ token, refreshToken, user: profileData });
       navigate("/vendor/dashboard");
     } catch (err) {
-      setError(axios.isAxiosError(err) ? err.response?.data?.message ?? "Couldn't sign you in. Check your details." : "Something went wrong.");
+      setError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message ?? "Couldn't sign you in. Check your details."
+          : err instanceof Error
+          ? err.message
+          : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }

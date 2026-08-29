@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
-import { adminApi } from "@/lib/apiClient";
+import { adminApi, unwrapList } from "@/lib/apiClient";
 
 interface Branch {
   id: string;
@@ -16,9 +16,16 @@ export function SuperAdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.allSettled([adminApi.get("/admin/super/branches"), adminApi.get("/admin/super/admins")]).then(([b, a]) => {
-      if (b.status === "fulfilled") setBranches(b.value.data?.data ?? []);
-      if (a.status === "fulfilled") setAdminCount((a.value.data?.data ?? []).length);
+      if (b.status === "fulfilled") {
+        const list = unwrapList<Branch>(b.value.data?.data ?? b.value.data);
+        setBranches(list);
+      }
+      if (a.status === "fulfilled") {
+        const list = unwrapList(a.value.data?.data ?? a.value.data);
+        setAdminCount(list.length);
+      }
       setLoading(false);
     });
   }, []);

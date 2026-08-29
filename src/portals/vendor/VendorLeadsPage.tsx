@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { vendorApi } from "@/lib/apiClient";
+import { vendorApi, unwrapList } from "@/lib/apiClient";
 
 interface Lead {
   id: string;
@@ -31,9 +32,11 @@ export function VendorLeadsPage() {
   const [error, setError] = useState("");
 
   const load = () => {
+    setLoading(true);
     vendorApi
       .get("/vendor/leads")
-      .then((res) => setLeads(res.data?.data ?? []))
+      .then((res) => setLeads(unwrapList<Lead>(res.data?.data ?? res.data)))
+      .catch(() => setLeads([]))
       .finally(() => setLoading(false));
   };
 
@@ -69,22 +72,28 @@ export function VendorLeadsPage() {
         <div className="flex flex-col gap-3">
           {leads.map((lead) => (
             <Card key={lead.id} className="flex flex-wrap items-center justify-between gap-4 p-5">
-              <div>
+              <Link to={`/vendor/leads/${lead.id}`} className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-ink">{lead.customerName}</p>
                   <Badge tone={leadStatusTone[lead.status] ?? "neutral"}>{lead.status.replaceAll("_", " ")}</Badge>
                 </div>
                 <p className="mt-1 text-sm text-ink-soft/70">{lead.serviceType ?? "Service"} · {lead.area ?? "Area not shared"}</p>
                 {lead.issue && <p className="mt-1 text-sm text-ink-soft/60">{lead.issue}</p>}
-              </div>
+              </Link>
               <div className="flex items-center gap-3">
                 {lead.leadAcceptanceCharge && (
                   <span className="font-mono text-sm text-ink-soft/70">{lead.leadAcceptanceCharge} coins</span>
                 )}
-                {lead.status === "NEW" && (
+                {lead.status === "NEW" ? (
                   <Button accent="orange" loading={actingId === lead.id} onClick={() => accept(lead.id)}>
                     Accept
                   </Button>
+                ) : (
+                  <Link to={`/vendor/leads/${lead.id}`}>
+                    <Button accent="orange" variant="secondary">
+                      Open
+                    </Button>
+                  </Link>
                 )}
               </div>
             </Card>

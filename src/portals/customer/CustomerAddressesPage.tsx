@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { customerApi } from "@/lib/apiClient";
+import { customerApi, unwrapList } from "@/lib/apiClient";
 
 interface Address {
   id: string;
@@ -30,7 +30,8 @@ export function CustomerAddressesPage() {
     setLoading(true);
     customerApi
       .get("/customer/addresses")
-      .then((res) => setAddresses(res.data?.data ?? []))
+      .then((res) => setAddresses(unwrapList<Address>(res.data?.data ?? res.data)))
+      .catch(() => setAddresses([]))
       .finally(() => setLoading(false));
   };
 

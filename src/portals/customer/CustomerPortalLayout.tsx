@@ -22,7 +22,7 @@ export function CustomerPortalLayout() {
       navItems={navItems}
       accent="teal"
       portalLabel="Customer portal"
-      userLabel={user ? `${user.firstName} ${user.lastName}` : "Customer"}
+      userLabel={user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.name || user.phone || user.email || "Customer" : "Customer"}
       userMeta={user?.phone ?? user?.email}
       onLogout={() => {
         logout();

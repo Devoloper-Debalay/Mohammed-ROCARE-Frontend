@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { vendorApi } from "@/lib/apiClient";
+import { vendorApi, unwrapList } from "@/lib/apiClient";
 
 interface Transaction {
   id: string;
@@ -22,9 +22,15 @@ export function VendorWalletPage() {
   const [recharging, setRecharging] = useState(false);
 
   const load = () => {
+    setLoading(true);
     Promise.allSettled([vendorApi.get("/vendor/wallet"), vendorApi.get("/vendor/wallet/history")]).then(([w, h]) => {
-      if (w.status === "fulfilled") setBalance(w.value.data?.data?.balance ?? "0");
-      if (h.status === "fulfilled") setHistory(h.value.data?.data ?? []);
+      if (w.status === "fulfilled") {
+        const walletData = w.value.data?.data ?? w.value.data;
+        setBalance(walletData?.balance !== undefined ? String(walletData.balance) : "0");
+      }
+      if (h.status === "fulfilled") {
+        setHistory(unwrapList<Transaction>(h.value.data?.data ?? h.value.data));
+      }
       setLoading(false);
     });
   };

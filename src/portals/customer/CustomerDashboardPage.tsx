@@ -25,7 +25,7 @@ export function CustomerDashboardPage() {
     <div>
       <PageHeader
         eyebrow="Overview"
-        title={`Welcome back, ${user?.firstName ?? "there"}`}
+        title={`Welcome back, ${user?.firstName || user?.name || "there"}`}
         description="Everything about your orders and service requests, in one place."
         action={
           <Link to="/customer/service-requests">

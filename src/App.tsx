@@ -9,34 +9,39 @@ import { CustomerCatalogPage } from "@/portals/customer/CustomerCatalogPage";
 import { CustomerCartPage } from "@/portals/customer/CustomerCartPage";
 import { CustomerAddressesPage } from "@/portals/customer/CustomerAddressesPage";
 import { CustomerOrdersPage } from "@/portals/customer/CustomerOrdersPage";
-import { CustomerServiceRequestsPage, CustomerComplaintsPage, CustomerNotificationsPage } from "@/portals/customer/CustomerPlaceholders";
+import { CustomerServiceRequestsPage } from "@/portals/customer/CustomerServiceRequestsPage";
+import { CustomerComplaintsPage } from "@/portals/customer/CustomerComplaintsPage";
+import { CustomerNotificationsPage } from "@/portals/customer/CustomerNotificationsPage";
 
 import { VendorLoginPage } from "@/portals/vendor/VendorLoginPage";
 import { VendorSignupPage } from "@/portals/vendor/VendorSignupPage";
 import { VendorPortalLayout } from "@/portals/vendor/VendorPortalLayout";
 import { VendorDashboardPage } from "@/portals/vendor/VendorDashboardPage";
 import { VendorLeadsPage } from "@/portals/vendor/VendorLeadsPage";
+import { VendorLeadDetailPage } from "@/portals/vendor/VendorLeadDetailPage";
 import { VendorWalletPage } from "@/portals/vendor/VendorWalletPage";
 import { VendorProfilePage } from "@/portals/vendor/VendorProfilePage";
-import { VendorProductsPage, VendorOffersPage, VendorComplaintsPage, VendorNotificationsPage } from "@/portals/vendor/VendorPlaceholders";
+import { VendorProductsPage } from "@/portals/vendor/VendorProductsPage";
+import { VendorOffersPage } from "@/portals/vendor/VendorOffersPage";
+import { VendorComplaintsPage } from "@/portals/vendor/VendorComplaintsPage";
+import { VendorNotificationsPage } from "@/portals/vendor/VendorNotificationsPage";
 
 import { StaffLoginPage } from "@/portals/admin/StaffLoginPage";
 import { StaffPortalLayout } from "@/portals/admin/StaffPortalLayout";
 import { AdminDashboardPage } from "@/portals/admin/AdminDashboardPage";
+import { AdminVendorsPage } from "@/portals/admin/AdminVendorsPage";
+import { AdminLeadsPage } from "@/portals/admin/AdminLeadsPage";
+import { AdminOrdersPage } from "@/portals/admin/AdminOrdersPage";
+import { AdminCatalogPage } from "@/portals/admin/AdminCatalogPage";
+import { AdminComplaintsPage } from "@/portals/admin/AdminComplaintsPage";
 import { SuperAdminDashboardPage } from "@/portals/admin/SuperAdminDashboardPage";
-import {
-  AdminVendorsPage,
-  AdminLeadsPage,
-  AdminOrdersPage,
-  AdminCatalogPage,
-  AdminComplaintsPage,
-  SuperAdminBranchesPage,
-  SuperAdminAdminsPage,
-  SuperAdminUsersPage,
-  SuperAdminAuditLogsPage,
-  SuperAdminSettingsPage,
-} from "@/portals/admin/AdminPlaceholders";
+import { SuperAdminBranchesPage } from "@/portals/admin/SuperAdminBranchesPage";
+import { SuperAdminAdminsPage } from "@/portals/admin/SuperAdminAdminsPage";
+import { SuperAdminUsersPage } from "@/portals/admin/SuperAdminUsersPage";
+import { SuperAdminAuditLogsPage } from "@/portals/admin/SuperAdminAuditLogsPage";
+import { SuperAdminSettingsPage } from "@/portals/admin/SuperAdminSettingsPage";
 
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { useCustomerAuth, useVendorAuth, useStaffAuth } from "@/store/authStore";
 
@@ -62,7 +67,7 @@ function CustomerRoutes() {
         <Route path="complaints" element={<CustomerComplaintsPage />} />
         <Route path="notifications" element={<CustomerNotificationsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to={isAuthenticated ? "dashboard" : "login"} replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/customer/dashboard" : "/customer/login"} replace />} />
     </Routes>
   );
 }
@@ -82,6 +87,7 @@ function VendorRoutes() {
       >
         <Route path="dashboard" element={<VendorDashboardPage />} />
         <Route path="leads" element={<VendorLeadsPage />} />
+        <Route path="leads/:leadId" element={<VendorLeadDetailPage />} />
         <Route path="wallet" element={<VendorWalletPage />} />
         <Route path="products" element={<VendorProductsPage />} />
         <Route path="offers" element={<VendorOffersPage />} />
@@ -89,7 +95,7 @@ function VendorRoutes() {
         <Route path="profile" element={<VendorProfilePage />} />
         <Route path="notifications" element={<VendorNotificationsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to={isAuthenticated ? "dashboard" : "login"} replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/vendor/dashboard" : "/vendor/login"} replace />} />
     </Routes>
   );
 }
@@ -121,21 +127,23 @@ function StaffRoutes() {
         <Route path="super-admin/audit-logs" element={isSuperAdmin ? <SuperAdminAuditLogsPage /> : <Navigate to="/staff/dashboard" replace />} />
         <Route path="super-admin/settings" element={isSuperAdmin ? <SuperAdminSettingsPage /> : <Navigate to="/staff/dashboard" replace />} />
       </Route>
-      <Route path="*" element={<Navigate to={isAuthenticated ? (isSuperAdmin ? "super-admin" : "dashboard") : "login"} replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? (isSuperAdmin ? "/staff/super-admin" : "/staff/dashboard") : "/staff/login"} replace />} />
     </Routes>
   );
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/customer/*" element={<CustomerRoutes />} />
-        <Route path="/vendor/*" element={<VendorRoutes />} />
-        <Route path="/staff/*" element={<StaffRoutes />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/customer/*" element={<CustomerRoutes />} />
+          <Route path="/vendor/*" element={<VendorRoutes />} />
+          <Route path="/staff/*" element={<StaffRoutes />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

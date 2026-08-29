@@ -7,16 +7,45 @@ const storageKey = (portal: PortalKey, field: "token" | "refreshToken" | "user")
   `rocare.${portal}.${field}`;
 
 export const portalStorage = {
-  getToken: (portal: PortalKey) => localStorage.getItem(storageKey(portal, "token")),
-  getRefreshToken: (portal: PortalKey) => localStorage.getItem(storageKey(portal, "refreshToken")),
+  getToken: (portal: PortalKey): string | null => {
+    const token = localStorage.getItem(storageKey(portal, "token"));
+    return token && token !== "undefined" && token !== "null" && token.trim() !== "" ? token : null;
+  },
+  getRefreshToken: (portal: PortalKey): string | null => {
+    const token = localStorage.getItem(storageKey(portal, "refreshToken"));
+    return token && token !== "undefined" && token !== "null" && token.trim() !== "" ? token : null;
+  },
   getUser: <T,>(portal: PortalKey): T | null => {
     const raw = localStorage.getItem(storageKey(portal, "user"));
-    return raw ? (JSON.parse(raw) as T) : null;
+    if (!raw || raw === "undefined" || raw === "null") return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
   },
-  setSession: (portal: PortalKey, data: { token: string; refreshToken?: string; user: unknown }) => {
-    localStorage.setItem(storageKey(portal, "token"), data.token);
-    if (data.refreshToken) localStorage.setItem(storageKey(portal, "refreshToken"), data.refreshToken);
-    localStorage.setItem(storageKey(portal, "user"), JSON.stringify(data.user));
+  setSession: (
+    portal: PortalKey,
+    data: { token?: string; accessToken?: string; refreshToken?: string; user?: unknown }
+  ) => {
+    const token = data.token || data.accessToken;
+    if (token && token !== "undefined" && token !== "null" && token.trim() !== "") {
+      localStorage.setItem(storageKey(portal, "token"), token);
+    } else {
+      localStorage.removeItem(storageKey(portal, "token"));
+    }
+
+    if (data.refreshToken && data.refreshToken !== "undefined" && data.refreshToken !== "null" && data.refreshToken.trim() !== "") {
+      localStorage.setItem(storageKey(portal, "refreshToken"), data.refreshToken);
+    } else {
+      localStorage.removeItem(storageKey(portal, "refreshToken"));
+    }
+
+    if (data.user !== undefined && data.user !== null && data.user !== "undefined" && data.user !== "null") {
+      localStorage.setItem(storageKey(portal, "user"), JSON.stringify(data.user));
+    } else {
+      localStorage.removeItem(storageKey(portal, "user"));
+    }
   },
   clear: (portal: PortalKey) => {
     localStorage.removeItem(storageKey(portal, "token"));
@@ -68,3 +97,29 @@ export interface ApiSuccessBody<T = unknown> {
   data?: T;
   pagination?: { page: number; limit: number; total: number; totalPages: number };
 }
+
+/**
+ * Safely unwraps an API response that may be a direct array, { data: [...] },
+ * { items: [...] }, or { rows: [...] } to prevent runtime `.map()` crashes.
+ */
+export function unwrapList<T = any>(payload: unknown): T[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload as T[];
+  const obj = payload as Record<string, any>;
+  if (Array.isArray(obj.data)) return obj.data as T[];
+  if (Array.isArray(obj.items)) return obj.items as T[];
+  if (Array.isArray(obj.rows)) return obj.rows as T[];
+  if (Array.isArray(obj.branches)) return obj.branches as T[];
+  if (Array.isArray(obj.admins)) return obj.admins as T[];
+  if (Array.isArray(obj.users)) return obj.users as T[];
+  if (Array.isArray(obj.products)) return obj.products as T[];
+  if (Array.isArray(obj.services)) return obj.services as T[];
+  if (Array.isArray(obj.parts)) return obj.parts as T[];
+  if (Array.isArray(obj.leads)) return obj.leads as T[];
+  if (Array.isArray(obj.orders)) return obj.orders as T[];
+  if (Array.isArray(obj.payments)) return obj.payments as T[];
+  if (Array.isArray(obj.complaints)) return obj.complaints as T[];
+  if (Array.isArray(obj.notifications)) return obj.notifications as T[];
+  return [];
+}
+

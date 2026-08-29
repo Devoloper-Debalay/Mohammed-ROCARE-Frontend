@@ -4,7 +4,7 @@ import { type PortalKey, portalStorage } from "@/lib/apiClient";
 interface AuthState<TUser> {
   user: TUser | null;
   isAuthenticated: boolean;
-  setSession: (data: { token: string; refreshToken?: string; user: TUser }) => void;
+  setSession: (data: { token?: string; accessToken?: string; refreshToken?: string; user?: TUser | null }) => void;
   logout: () => void;
 }
 
@@ -14,7 +14,11 @@ function createAuthStore<TUser>(portal: PortalKey) {
     isAuthenticated: Boolean(portalStorage.getToken(portal)),
     setSession: (data) => {
       portalStorage.setSession(portal, data);
-      set({ user: data.user, isAuthenticated: true });
+      const token = data.token || data.accessToken;
+      set({
+        user: (data.user as TUser) ?? null,
+        isAuthenticated: Boolean(token && token !== "undefined" && token !== "null" && token.trim() !== ""),
+      });
     },
     logout: () => {
       portalStorage.clear(portal);
@@ -24,9 +28,10 @@ function createAuthStore<TUser>(portal: PortalKey) {
 }
 
 export interface CustomerUser {
-  id: string;
-  firstName: string;
-  lastName: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
   email?: string;
   phone?: string;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
-import { customerApi } from "@/lib/apiClient";
+import { customerApi, unwrapList } from "@/lib/apiClient";
 
 interface Order {
   id: string;
@@ -25,9 +25,11 @@ export function CustomerOrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     customerApi
       .get("/orders/customer")
-      .then((res) => setOrders(res.data?.data ?? []))
+      .then((res) => setOrders(unwrapList<Order>(res.data?.data ?? res.data)))
+      .catch(() => setOrders([]))
       .finally(() => setLoading(false));
   }, []);
 

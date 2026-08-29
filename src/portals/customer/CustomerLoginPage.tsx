@@ -38,15 +38,29 @@ export function CustomerLoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await customerApi.post<ApiSuccessBody<{ token: string; refreshToken?: string; user: any }>>(
+      const res = await customerApi.post<ApiSuccessBody<any>>(
         "/customer/auth/verify-otp",
         { identifier, code, purpose: "LOGIN" }
       );
-      const data = res.data.data!;
-      setSession({ token: data.token, refreshToken: data.refreshToken, user: data.user });
+      const rawData = res.data?.data ?? res.data;
+      const token = rawData?.accessToken || rawData?.token || (res.data as any)?.accessToken || (res.data as any)?.token;
+      const refreshToken = rawData?.refreshToken || (res.data as any)?.refreshToken;
+      const user = rawData?.user || rawData?.customer || (res.data as any)?.user || (res.data as any)?.customer;
+
+      if (!token) {
+        throw new Error("Invalid response from server: Authentication token missing.");
+      }
+
+      setSession({ token, refreshToken, user });
       navigate("/customer/dashboard");
     } catch (err) {
-      setError(axios.isAxiosError(err) ? err.response?.data?.message ?? "That code didn't work. Try again." : "Something went wrong.");
+      setError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message ?? "That code didn't work. Try again."
+          : err instanceof Error
+          ? err.message
+          : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }

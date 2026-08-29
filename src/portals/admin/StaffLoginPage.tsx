@@ -21,13 +21,24 @@ export function StaffLoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await adminApi.post<ApiSuccessBody<{ accessToken: string; user: any }>>("/admin/auth/login", { email, password });
-      const data = res.data.data!;
-      setSession({ token: data.accessToken, user: data.user });
+      const res = await adminApi.post<ApiSuccessBody<any>>("/admin/auth/login", { email, password });
+      const rawData = res.data?.data ?? res.data;
+      const token = rawData?.accessToken || rawData?.token;
+      const user = rawData?.user;
+      if (!token) {
+        throw new Error("Invalid response from server: Authentication token missing.");
+      }
+      setSession({ token, user });
       // Same login for ADMIN and SADMIN — each role only ever sees its own nav and routes.
-      navigate(data.user.role === "SADMIN" ? "/staff/super-admin" : "/staff/dashboard");
+      navigate(user?.role === "SADMIN" ? "/staff/super-admin" : "/staff/dashboard");
     } catch (err) {
-      setError(axios.isAxiosError(err) ? err.response?.data?.message ?? "Couldn't sign you in." : "Something went wrong.");
+      setError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message ?? "Couldn't sign you in."
+          : err instanceof Error
+          ? err.message
+          : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
