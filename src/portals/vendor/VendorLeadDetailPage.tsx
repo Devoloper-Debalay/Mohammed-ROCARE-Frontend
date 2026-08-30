@@ -13,11 +13,16 @@ import { vendorApi } from "@/lib/apiClient";
 interface Lead {
   id: string;
   customerName: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   area?: string;
   serviceType?: string;
   issue?: string;
   status: string;
   leadAcceptanceCharge?: string;
+  estimatedAmount?: string;
+  createdAt?: string;
 }
 
 const stageOf: Record<string, number> = {
@@ -136,6 +141,8 @@ export function VendorLeadDetailPage() {
       </Card>
     );
 
+  const isNew = lead.status === "NEW";
+
   return (
     <div>
       <PageHeader
@@ -147,7 +154,7 @@ export function VendorLeadDetailPage() {
             <Button accent="orange" variant="secondary" onClick={() => setShowQrModal(true)}>
               📱 QR Pass
             </Button>
-            {(lead.status === "ACCEPTED" || lead.status === "ONGOING") && (
+            {!isNew && (
               <Button accent="orange" onClick={() => setShowNavigation((v) => !v)}>
                 {showNavigation ? "Hide Google Map" : "🗺️ Google Maps Navigation"}
               </Button>
@@ -185,7 +192,7 @@ export function VendorLeadDetailPage() {
             isModal={false}
             serviceId={`LEAD-${lead.id.slice(0, 8)}`}
             serviceTitle={`Navigating to: ${lead.customerName} (${lead.serviceType ?? "RO Service"})`}
-            customerAddress={lead.area ?? "Customer Site"}
+            customerAddress={lead.address || lead.area || "Customer Site"}
             initialStage={lead.status}
           />
         </div>
@@ -193,16 +200,177 @@ export function VendorLeadDetailPage() {
 
       <Card className="p-6 border border-ink/[0.08]">
         <div className="mb-5 flex items-center justify-between">
-          <Badge tone="orange">{lead.status.replace(/_/g, " ")}</Badge>
-          {lead.leadAcceptanceCharge && <span className="font-mono text-sm text-ink-soft/70">{lead.leadAcceptanceCharge} coins to accept</span>}
+          <div className="flex items-center gap-2">
+            <Badge tone="orange">{lead.status.replace(/_/g, " ")}</Badge>
+            {isNew ? (
+              <Badge tone="gold">🔒 Contact Details Masked</Badge>
+            ) : (
+              <Badge tone="success">✓ Contact Details Unlocked</Badge>
+            )}
+          </div>
+          {lead.leadAcceptanceCharge && (
+            <span className="font-mono text-sm font-semibold text-orange-600 dark:text-orange-400">
+              {lead.leadAcceptanceCharge} coins to accept
+            </span>
+          )}
         </div>
 
         <StageBar stages={stages} activeIndex={stageOf[lead.status] ?? 0} accent="var(--color-orange)" />
 
-        {lead.issue && <p className="mt-5 text-sm text-ink-soft/70">{lead.issue}</p>}
+        {/* Customer Contact & Address Card */}
+        <div className="mt-6">
+          {isNew ? (
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5">
+              <div className="flex items-center justify-between gap-2 border-b border-amber-500/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/20 text-base">
+                    🔒
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-bold text-ink">
+                      Customer Contact &amp; Address Protected
+                    </h4>
+                    <p className="text-xs text-ink-soft/70">
+                      This lead is in <strong>NEW</strong> stage. Contact details are masked until you accept the lead.
+                    </p>
+                  </div>
+                </div>
+                <Badge tone="gold">Pre-Acceptance</Badge>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-surface p-4 border border-ink/[0.06] shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft/60">Phone Number</p>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="font-mono text-lg font-bold text-ink tracking-wide">
+                      {lead.phone || "******••••"}
+                    </span>
+                    <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                      🔒 Masked
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs text-ink-soft/60">
+                    Accept to reveal full 10-digit number &amp; direct calling
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-surface p-4 border border-ink/[0.06] shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft/60">Service Address &amp; Area</p>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-ink">
+                      {lead.address || lead.area || "Area in Kolkata"}
+                    </span>
+                    <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                      🔒 Street Masked
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs text-ink-soft/60">
+                    Full doorstep house/flat number &amp; GPS navigation unlock upon acceptance
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-amber-500/10 pt-3">
+                <span className="text-xs text-ink-soft/70">
+                  Wallet deduction: <strong className="font-mono font-bold text-orange-600 dark:text-orange-400">{lead.leadAcceptanceCharge || "50"} Coins</strong>
+                </span>
+                <Button accent="orange" loading={acting} onClick={accept} className="shadow-md font-bold">
+                  Accept Lead &amp; Unlock Full Details →
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+              <div className="flex items-center justify-between gap-2 border-b border-emerald-500/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-base text-emerald-600 font-bold">
+                    ✓
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-bold text-ink">
+                      Full Customer Contact &amp; Doorstep Address Unlocked
+                    </h4>
+                    <p className="text-xs text-ink-soft/70">
+                      You have claimed this job. You can now call, WhatsApp, and navigate directly to the customer.
+                    </p>
+                  </div>
+                </div>
+                <Badge tone="success">Unlocked</Badge>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-surface p-4 border border-ink/[0.06] shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft/60">Customer Phone</p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span className="font-mono text-lg font-bold text-ink">
+                      {lead.phone || "Not provided"}
+                    </span>
+                    {lead.phone && (
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={`tel:${lead.phone}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                        >
+                          📞 Call
+                        </a>
+                        <a
+                          href={`https://wa.me/91${lead.phone.replace(/\D/g, "").slice(-10)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          💬 WhatsApp
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                    ✓ Direct line to customer
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-surface p-4 border border-ink/[0.06] shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft/60">Full Service Address</p>
+                  <div className="mt-1 flex items-start justify-between gap-2">
+                    <span className="text-sm font-semibold text-ink leading-snug">
+                      {lead.address || lead.area || "Customer Address"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowNavigation((v) => !v)}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#c2410c] px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-700 transition-colors shadow-sm"
+                    >
+                      🗺️ {showNavigation ? "Hide Map" : "Directions"}
+                    </button>
+                  </div>
+                  {lead.area && lead.address && lead.area !== lead.address && (
+                    <p className="mt-1.5 text-xs text-ink-soft/70">Area: {lead.area}</p>
+                  )}
+                </div>
+              </div>
+
+              {lead.email && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-surface p-2.5 text-xs border border-ink/[0.05]">
+                  <span className="text-ink-soft/70 font-semibold">Customer Email:</span>
+                  <a href={`mailto:${lead.email}`} className="text-orange-600 dark:text-orange-400 font-mono font-medium hover:underline">
+                    {lead.email}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {lead.issue && (
+          <div className="mt-5 rounded-xl bg-ink/[0.02] p-3.5 border border-ink/[0.06]">
+            <p className="text-xs font-bold uppercase tracking-wider text-ink-soft/60">Reported Problem / Issue</p>
+            <p className="mt-1 text-sm text-ink">{lead.issue}</p>
+          </div>
+        )}
 
         {error && <p className="mt-4 text-sm font-medium text-danger">{error}</p>}
 
+        {/* Action Buttons Toolbar */}
         <div className="mt-6 flex flex-wrap gap-3">
           {lead.status === "NEW" && (
             <Button accent="orange" loading={acting} onClick={accept}>
@@ -219,6 +387,25 @@ export function VendorLeadDetailPage() {
                 🗺️ Start Navigation
               </Button>
             </>
+          )}
+
+          {lead.status === "ONGOING" && !showDenyForm && (
+            <div className="flex flex-wrap items-center gap-3 w-full">
+              <Button accent="orange" loading={acting} onClick={complete} className="flex-1 sm:flex-none">
+                ✓ Mark job complete
+              </Button>
+              <Button
+                accent="orange"
+                variant="secondary"
+                onClick={() => setShowDenyForm(true)}
+                className="!text-danger !border-danger/30 hover:!bg-danger/10"
+              >
+                ✕ Deny / Cancel lead
+              </Button>
+              <Button accent="orange" variant="ghost" onClick={() => setShowNavigation((v) => !v)}>
+                🗺️ {showNavigation ? "Hide Map" : "Directions"}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -282,27 +469,69 @@ export function VendorLeadDetailPage() {
 
         {/* Denial Proof with Geo-Tagged Camera Integration */}
         {showDenyForm && (
-          <form onSubmit={deny} className="mt-6 flex flex-col gap-3 rounded-2xl bg-base p-5 border border-ink/[0.06]">
-            <p className="text-sm font-semibold text-ink">Submit denial proof</p>
-            <Input label="Reason" value={denyReason} onChange={(e) => setDenyReason(e.target.value)} required />
+          <form onSubmit={deny} className="mt-6 flex flex-col gap-3 rounded-2xl bg-base p-5 border border-danger/20 bg-danger/[0.02]">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-ink-soft/70">Attach customer denial / locked site photo</span>
+              <div>
+                <p className="text-sm font-semibold text-danger">Submit Job Denial / Cancellation Proof</p>
+                <p className="text-xs text-ink-soft/70">
+                  Attach on-site photo with GPS geotag and provide the reason for denial.
+                </p>
+              </div>
               <Button
                 type="button"
                 accent="orange"
                 variant="secondary"
                 onClick={() => setShowGeoCamera("deny")}
-                className="!py-1 !px-2.5 !text-xs"
+                className="!py-1.5 !px-3 !text-xs"
               >
-                📸 Geotag Photo
+                📸 Open Geotagged Cam
               </Button>
             </div>
-            {proofFile && (
-              <p className="text-xs text-emerald-600 font-mono">✓ Attached: {proofFile.name}</p>
+
+            <Input
+              label="Denial / Cancellation Reason"
+              placeholder="e.g. Customer unavailable / refused service / locked premises"
+              value={denyReason}
+              onChange={(e) => setDenyReason(e.target.value)}
+              required
+            />
+
+            {proofFile ? (
+              <div className="rounded-xl bg-surface p-3 border border-danger/30 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-danger font-bold">✓</span>
+                  <div>
+                    <p className="text-xs font-semibold text-ink">{proofFile.name}</p>
+                    {geoCoords.latitude && (
+                      <p className="text-[11px] font-mono text-ink-soft/70">
+                        GPS: {geoCoords.latitude?.toFixed(4)}, {geoCoords.longitude?.toFixed(4)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProofFile(null);
+                    setGeoCoords({});
+                  }}
+                  className="text-xs text-danger font-medium hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                className="text-sm border border-ink/10 rounded-xl p-2 bg-surface text-ink"
+              />
             )}
+
             <div className="flex gap-2 mt-2">
-              <Button type="submit" accent="orange" loading={acting}>
-                Submit denial
+              <Button type="submit" accent="orange" loading={acting} className="!bg-danger !text-white hover:!bg-danger/90">
+                Confirm &amp; Submit Denial Proof
               </Button>
               <Button type="button" variant="ghost" accent="orange" onClick={() => setShowDenyForm(false)}>
                 Cancel
@@ -311,14 +540,28 @@ export function VendorLeadDetailPage() {
           </form>
         )}
 
-        {lead.status === "ONGOING" && (
-          <Button accent="orange" loading={acting} onClick={complete} className="mt-6">
-            Mark job complete
-          </Button>
+        {lead.status === "PENDING_START_VERIFICATION" && !showDenyForm && (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
+              ⏳ Start-of-work proof submitted. Waiting on admin to verify your geotag proof.
+            </p>
+            <Button
+              accent="orange"
+              variant="secondary"
+              onClick={() => setShowDenyForm(true)}
+              className="!text-xs !py-1.5 !px-3 !text-danger !border-danger/30 hover:!bg-danger/10"
+            >
+              ✕ Deny Job Instead
+            </Button>
+          </div>
         )}
 
-        {(lead.status === "PENDING_START_VERIFICATION" || lead.status === "PENDING_DENIAL_VERIFICATION") && (
-          <p className="mt-6 text-sm text-ink-soft/70">Waiting on admin to verify your submitted proof.</p>
+        {lead.status === "PENDING_DENIAL_VERIFICATION" && (
+          <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <p className="text-xs font-medium text-red-800 dark:text-red-300">
+              ⏳ Denial proof submitted. Waiting on admin verification for refund.
+            </p>
+          </div>
         )}
       </Card>
     </div>

@@ -1,270 +1,414 @@
-import React, { type FormEvent, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { type FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { adminApi } from "@/lib/apiClient";
+import { adminApi, unwrapList } from "@/lib/apiClient";
 import { useStaffAuth } from "@/store/authStore";
 import type { ApiSuccessBody } from "@/lib/apiClient";
-import "./retro-future.css";
+
+interface Branch {
+  id: string;
+  name: string;
+  code?: string;
+  city?: string;
+  state?: string;
+}
+
+const DEFAULT_BRANCHES: Branch[] = [
+  { id: "branch-kol-dunlop", name: "Dunlop Hub", code: "KOL-DUN", city: "Kolkata", state: "West Bengal" },
+  { id: "branch-kol-saltlake", name: "Salt Lake Sector 1", code: "KOL-SL1", city: "Kolkata", state: "West Bengal" },
+  { id: "branch-kol-behala", name: "Behala South Hub", code: "KOL-BEH", city: "Kolkata", state: "West Bengal" },
+  { id: "branch-howrah", name: "Howrah AC Market", code: "HWH-CTR", city: "Howrah", state: "West Bengal" },
+];
 
 export function StaffLoginPage() {
   const navigate = useNavigate();
   const setSession = useStaffAuth((s) => s.setSession);
-  
+
+  // Stepper: 1 = Role selection, 2 = Credentials & Branch selection
+  const [step, setStep] = useState<1 | 2>(1);
+  const [role, setRole] = useState<"SADMIN" | "ADMIN">("ADMIN");
+
+  // Form Fields
+  const [branches, setBranches] = useState<Branch[]>(DEFAULT_BRANCHES);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [loadingBranches, setLoadingBranches] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
+  // UI States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const submit = async (e: FormEvent) => {
+  // Fetch live active branches from database
+  useEffect(() => {
+    setLoadingBranches(true);
+    adminApi
+      .get("/admin/auth/branches")
+      .then((res) => {
+        const list = unwrapList<Branch>(res.data?.data ?? res.data);
+        if (list && list.length > 0) {
+          setBranches(list);
+          setSelectedBranchId(list[0].id);
+        } else {
+          setSelectedBranchId(DEFAULT_BRANCHES[0].id);
+        }
+      })
+      .catch(() => {
+        setSelectedBranchId(DEFAULT_BRANCHES[0].id);
+      })
+      .finally(() => {
+        setLoadingBranches(false);
+      });
+  }, []);
+
+  const handleNextStep = (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (role === "ADMIN" && branches.length > 0 && !selectedBranchId) {
+      setSelectedBranchId(branches[0].id);
+    }
+    setStep(2);
+  };
+
+  const handleSubmitLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const res = await adminApi.post<ApiSuccessBody<any>>("/admin/auth/login", { email, password });
+      const res = await adminApi.post<ApiSuccessBody<any>>("/admin/auth/login", {
+        email,
+        password,
+      });
+
       const rawData = res.data?.data ?? res.data;
       const token = rawData?.accessToken || rawData?.token;
       const user = rawData?.user;
+
       if (!token) {
-        throw new Error("Access key missing in mainframe response.");
+        throw new Error("Authentication succeeded but token was missing.");
       }
+
       setSuccess(true);
       setSession({ token, user });
-      
+
       setTimeout(() => {
         navigate(user?.role === "SADMIN" ? "/staff/super-admin" : "/staff/dashboard");
-      }, 700);
+      }, 500);
     } catch (err) {
       setError(
         axios.isAxiosError(err)
-          ? err.response?.data?.message ?? "ACCESS DENIED: Invalid administrator credentials."
+          ? err.response?.data?.message ?? "Invalid email or password. Please verify your credentials."
           : err instanceof Error
           ? err.message
-          : "MAINFRAME ERROR: Authentication rejected."
+          : "Authentication failed. Please check your network connection."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQuickFill = (role: "SADMIN" | "ADMIN") => {
-    if (role === "SADMIN") {
-      setEmail("superadmin@rocare.in");
-      setPassword("Admin@1234");
-    } else {
-      setEmail("admin.dunlop@rocare.in");
-      setPassword("Admin@1234");
-    }
-    setError("");
-  };
-
   return (
-    <div className="retro-bg-container flex items-center justify-center p-4 sm:p-6 font-mono text-white select-none">
-      {/* Background Retro Grid & Scanner Lasers */}
-      <div className="y2k-grid pointer-events-none" />
-      <div className="grid-dots pointer-events-none" />
-      
-      <div className="scanner-lines pointer-events-none">
-        <div className="scan-line scan-1" />
-        <div className="scan-line scan-2" />
-        <div className="scan-line scan-3" />
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden text-slate-100">
+      {/* Minimalist Ambient Glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-blue-600/15 via-indigo-600/10 to-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Floating Retro Orbs */}
-      <div className="floating-orbs pointer-events-none">
-        <div className="retro-orb orb-1" />
-        <div className="retro-orb orb-2" />
-        <div className="retro-orb orb-3" />
-      </div>
+      {/* Main Login Card */}
+      <div className="relative w-full max-w-[440px] z-10">
+        
+        {/* Minimalist Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20 mb-4 border border-white/10">
+            <span className="text-2xl font-bold">🛡️</span>
+          </div>
 
-      {/* Main Login Hologram Card Container */}
-      <div className="relative w-full max-w-[460px] z-10">
-        <div className="future-card">
-          
-          {/* Chrome Header & Rotating Emblem */}
-          <div className="text-center mb-6">
-            <div className="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-              <div className="chrome-glow" />
-              <div className="logo-chrome">
-                <div className="chrome-inner text-2xl font-black text-slate-900">
-                  ⚡
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            ROCARE ADMIN PORTAL
+          </h1>
+          <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1">
+            {step === 1 ? "Select your administrative authorization role" : `Signing in as ${role === "SADMIN" ? "Super Admin" : "Branch Admin"}`}
+          </p>
+        </div>
+
+        {/* Minimalist Glass Card */}
+        <div className="rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/50">
+
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-5 rounded-2xl bg-rose-950/70 border border-rose-500/40 p-3.5 text-xs font-semibold text-rose-200 flex items-start gap-2.5 animate-fadeIn">
+              <span className="text-sm shrink-0">⚠️</span>
+              <p className="leading-snug">{error}</p>
+            </div>
+          )}
+
+          {/* Success Banner */}
+          {success && (
+            <div className="mb-5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 p-3.5 text-xs font-semibold text-emerald-200 flex items-center gap-2.5">
+              <span className="text-sm shrink-0">✓</span>
+              <span>Authentication approved. Redirecting to console...</span>
+            </div>
+          )}
+
+          {/* ================= STEP 1: ROLE DROPDOWN ONLY ================= */}
+          {step === 1 && (
+            <form onSubmit={handleNextStep} className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                  Select Administrative Role
+                </label>
+                <div className="relative">
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as "SADMIN" | "ADMIN")}
+                    className="w-full appearance-none rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3.5 text-sm font-semibold text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+                  >
+                    <option value="ADMIN" className="bg-slate-900 text-white py-2">
+                      🏢 Branch Admin (Hub Operations &amp; Dispatch)
+                    </option>
+                    <option value="SADMIN" className="bg-slate-900 text-white py-2">
+                      👑 Super Admin (Full Platform &amp; Statewide Management)
+                    </option>
+                  </select>
+                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                    ▼
+                  </div>
+                </div>
+
+                <div className="mt-3 p-3 rounded-xl bg-slate-800/40 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+                  <span className="text-base">{role === "SADMIN" ? "👑" : "🏢"}</span>
+                  <span>
+                    {role === "SADMIN"
+                      ? "Global access across all branches, analytics, financial ledger, and administrator accounts."
+                      : "Assigned to a specific regional branch hub for localized dispatch, leads, and orders."}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <h1 className="font-display text-3xl font-black tracking-widest uppercase flex items-center justify-center gap-2">
-              <span className="title-chrome">ROCARE</span>
-              <span className="title-neon">FUTURE</span>
-            </h1>
-            <p className="text-[11px] font-bold tracking-[3px] text-cyan-300 uppercase mt-1">
-              Admin &amp; Super-Admin Mainframe Console
-            </p>
-          </div>
-
-          {/* Cyber Quick Demo Credentials Bar */}
-          <div className="mb-6 rounded-2xl bg-black/40 border border-cyan-500/30 p-2.5 text-center backdrop-blur-md">
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-cyan-400 block mb-1.5">
-              ⚡ FAST ACCESS PRESETS
-            </span>
-            <div className="flex items-center justify-center gap-2">
               <button
-                type="button"
-                onClick={() => handleQuickFill("SADMIN")}
-                className="px-3 py-1 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/40 hover:to-purple-500/40 text-pink-300 border border-pink-500/40 text-[10px] font-black uppercase tracking-wider transition-all shadow-sm"
+                type="submit"
+                className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 group"
               >
-                👑 SUPER ADMIN
+                <span>Next Step</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill("ADMIN")}
-                className="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/40 hover:to-blue-500/40 text-cyan-300 border border-cyan-500/40 text-[10px] font-black uppercase tracking-wider transition-all shadow-sm"
-              >
-                🏢 BRANCH ADMIN
-              </button>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-5 rounded-2xl bg-rose-950/80 border border-rose-500/60 p-3.5 text-[11px] font-bold text-rose-300 flex items-center gap-2.5 shadow-lg shadow-rose-900/40 animate-pulse">
-              <span className="text-base">⚠️</span>
-              <span>{error}</span>
-            </div>
+            </form>
           )}
 
-          {/* Success Message */}
-          {success && (
-            <div className="mb-5 rounded-2xl bg-emerald-950/80 border border-cyan-400 p-3.5 text-[11px] font-bold text-cyan-300 flex items-center gap-2.5 shadow-lg shadow-cyan-900/40">
-              <span className="text-base">✓</span>
-              <span>ACCESS GRANTED • Initializing digital interface...</span>
-            </div>
-          )}
-
-          {/* Main Retro Form */}
-          <form onSubmit={submit} className="space-y-4">
-            
-            {/* Business Email Field */}
-            <div className="field-chrome">
-              <div className="chrome-border" />
-              <div className="relative z-10">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder=" "
-                  className="w-full bg-transparent border-none px-4 py-4 text-xs font-bold text-white uppercase tracking-wider outline-none placeholder-transparent"
-                />
-                <label className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold uppercase tracking-wider pointer-events-none transition-all">
-                  {email ? "" : "ADMIN EMAIL"}
-                </label>
-              </div>
-              <div className="field-hologram" />
-            </div>
-
-            {/* Password Field */}
-            <div className="field-chrome">
-              <div className="chrome-border" />
-              <div className="relative z-10 flex items-center">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder=" "
-                  className="w-full bg-transparent border-none px-4 py-4 pr-12 text-xs font-bold text-white tracking-wider outline-none placeholder-transparent"
-                />
-                <label className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold uppercase tracking-wider pointer-events-none transition-all">
-                  {password ? "" : "ACCESS CODE / PASSWORD"}
-                </label>
+          {/* ================= STEP 2: CREDENTIALS & BRANCH ================= */}
+          {step === 2 && (
+            <form onSubmit={handleSubmitLogin} className="space-y-4">
+              {/* Selected Role Indicator & Change Link */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{role === "SADMIN" ? "👑" : "🏢"}</span>
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      {role === "SADMIN" ? "Super Admin Console" : "Branch Admin Desk"}
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {role === "SADMIN" ? "Global Statewide Authority" : "Branch-Scoped Access"}
+                    </span>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 text-cyan-400 hover:text-cyan-200 text-base p-1 focus:outline-none transition-colors"
+                  onClick={() => setStep(1)}
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 underline"
                 >
-                  {showPassword ? "👁️" : "🔒"}
+                  Change Role
                 </button>
               </div>
-              <div className="field-hologram" />
-            </div>
 
-            {/* Remember & Recovery Options */}
-            <div className="flex items-center justify-between text-[11px] pt-1 font-bold">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-cyan-500/50 bg-slate-900 text-cyan-500 focus:ring-cyan-400"
-                />
-                <span>REMEMBER SESSION</span>
-              </label>
-              <span className="text-pink-400 hover:text-pink-300 cursor-pointer underline">
-                RECOVER ACCESS
-              </span>
-            </div>
+              {/* Branch Selection Dropdown (Only for Branch Admin) */}
+              {role === "ADMIN" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Assigned Branch Hub
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedBranchId}
+                      onChange={(e) => setSelectedBranchId(e.target.value)}
+                      disabled={loadingBranches}
+                      className="w-full appearance-none rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3 text-sm font-semibold text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id} className="bg-slate-900 text-white">
+                          📍 {b.name} ({b.city || "Kolkata"}) {b.code ? `• ${b.code}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                      {loadingBranches ? "..." : "▼"}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Your account must be assigned to this branch by Super Admin.
+                  </p>
+                </div>
+              )}
 
-            {/* Retro Futuristic Submit Button */}
-            <button
-              type="submit"
-              disabled={loading || success}
-              className="retro-button mt-4"
-            >
-              <div className="button-chrome" />
-              <span className="relative z-10 flex items-center justify-center gap-2">
+              {/* Email Address Field */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Official Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={role === "SADMIN" ? "superadmin@rocare.in" : "admin.dunlop@rocare.in"}
+                    className="w-full rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3 pl-10 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    ✉️
+                  </span>
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Password / Passkey
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3 pl-10 pr-11 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    🔒
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-sm p-1 focus:outline-none"
+                  >
+                    {showPassword ? "👁️" : "🙈"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me & Forgot Credentials */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Remember Session</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="font-semibold text-blue-400 hover:text-blue-300 hover:underline"
+                >
+                  Forgot credential?
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || success}
+                className="w-full mt-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
                 {loading ? (
                   <>
-                    <span className="animate-spin text-lg">⚙️</span>
-                    <span>INITIALIZING MAINFRAME...</span>
+                    <span className="animate-spin text-base">⏳</span>
+                    <span>Validating credentials...</span>
                   </>
                 ) : success ? (
                   <>
-                    <span>✓ ACCESS CONFIRMED</span>
+                    <span>✓ Authorized</span>
                   </>
                 ) : (
                   <>
-                    <span>ENTER THE FUTURE →</span>
+                    <span>Access Dashboard →</span>
                   </>
                 )}
-              </span>
-            </button>
-          </form>
+              </button>
 
-          {/* Retro Divider */}
-          <div className="retro-divider">
-            <div className="divider-chrome" />
-            <span className="text-[9px] font-black uppercase tracking-[2px] text-cyan-400">
-              OR CONNECT VIA
-            </span>
-            <div className="divider-chrome" />
-          </div>
+              {/* Back to Step 1 */}
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-xs font-semibold text-slate-400 hover:text-slate-200"
+                >
+                  ← Back to role selection
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
 
-          {/* Future Social & Portals */}
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/customer/login"
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-black/40 hover:bg-cyan-500/20 py-2.5 text-[10px] font-black uppercase tracking-wider text-cyan-300 transition-all text-center"
-            >
-              <span>👤</span> CUSTOMER
-            </Link>
-            <Link
-              to="/vendor/login"
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-pink-500/30 bg-black/40 hover:bg-pink-500/20 py-2.5 text-[10px] font-black uppercase tracking-wider text-pink-300 transition-all text-center"
-            >
-              <span>🛵</span> TECHNICIAN
-            </Link>
-          </div>
-
-          {/* Security Subtext */}
-          <div className="mt-6 pt-4 border-t border-white/10 text-center">
-            <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-              🔒 256-BIT QUANTUM ENCRYPTED • ROCARE v4.9
-            </p>
-          </div>
+        {/* Footer Security Badge */}
+        <div className="mt-6 text-center text-slate-500 text-xs font-medium">
+          🔒 ROCARE Administrative Security Gateway • Encrypted Access
         </div>
       </div>
+
+      {/* Forgot Credentials Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                <span>🔑</span> Account Recovery &amp; Reset
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="text-slate-400 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>
+                Administrative accounts are protected by enterprise security protocols:
+              </p>
+              <div className="rounded-xl bg-slate-800/60 p-3 border border-slate-700/50 space-y-2">
+                <p className="font-bold text-white">For Branch Admins:</p>
+                <p className="text-slate-400">
+                  Please contact the <strong>Master Super Administrator</strong> or branch supervisor to re-issue temporary login credentials or reset your branch assignment.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-800/60 p-3 border border-slate-700/50 space-y-2">
+                <p className="font-bold text-white">Master IT Helpdesk:</p>
+                <p className="font-mono text-blue-400">admin-support@rocare.in</p>
+                <p className="font-mono text-slate-400">+91 90516 07464 (HQ Desk)</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowForgotModal(false)}
+              className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 text-xs transition-colors"
+            >
+              Understood, Return to Login
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

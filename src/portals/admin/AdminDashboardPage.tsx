@@ -49,6 +49,7 @@ export function AdminDashboardPage() {
   const [pendingVendors, setPendingVendors] = useState<PendingVendor[]>([]);
   const [pendingProofs, setPendingProofs] = useState<PendingStartProof[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [techniciansCount, setTechniciansCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
   const [showFleetRadar, setShowFleetRadar] = useState(false);
@@ -68,7 +69,8 @@ export function AdminDashboardPage() {
       adminApi.get("/admin/vendors/pending"),
       adminApi.get("/admin/leads/start-proofs/pending"),
       adminApi.get("/admin/orders?limit=5"),
-    ]).then(([rRes, pRes, sRes, oRes]) => {
+      adminApi.get("/admin/vendors?limit=100"),
+    ]).then(([rRes, pRes, sRes, oRes, vRes]) => {
       if (rRes.status === "fulfilled") {
         setReport(rRes.value.data?.data ?? rRes.value.data);
       }
@@ -83,6 +85,12 @@ export function AdminDashboardPage() {
       if (oRes.status === "fulfilled") {
         const rawO = oRes.value.data?.data ?? oRes.value.data;
         setRecentOrders(unwrapList<any>(rawO));
+      }
+      if (vRes.status === "fulfilled") {
+        const rawV = vRes.value.data;
+        const vList = unwrapList<any>(rawV?.data ?? rawV);
+        const techs = vList.filter((v: any) => v.role === "TECHNICIAN" || !v.role);
+        setTechniciansCount(rawV?.pagination?.total ?? techs.length);
       }
       setLoading(false);
     });
@@ -124,7 +132,7 @@ export function AdminDashboardPage() {
 
   const db = report?.dashboard || {};
   const ps = report?.paymentSummary || {};
-  const activeVendors = db.activeVendors ?? db.verifiedVendors ?? 18;
+  const activeVendors = db.technicians ?? db.activeTechnicians ?? db.activeVendors ?? techniciansCount ?? db.vendors ?? 0;
   const pendingKYC = report?.pendingVendors ?? pendingVendors.length;
   const pendingGeotags = report?.pendingStartProofs ?? pendingProofs.length;
   const revenueAmount = Number(ps.totalRevenue ?? db.totalRevenue ?? 489500);

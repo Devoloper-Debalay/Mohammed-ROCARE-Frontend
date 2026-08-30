@@ -14,6 +14,8 @@ interface Wallet {
 interface Lead {
   id: string;
   customerName: string;
+  phone?: string;
+  address?: string;
   area?: string;
   serviceType?: string;
   status: string;
@@ -21,10 +23,10 @@ interface Lead {
 }
 
 const DEFAULT_DEMO_LEADS: Lead[] = [
-  { id: "lead-kol-101", customerName: "Rajdeep Banerjee", area: "Sector 1, Salt Lake, Kolkata", serviceType: "RO Membrane & TDS Filter Service", status: "ACCEPTED", leadAcceptanceCharge: "50" },
-  { id: "lead-kol-102", customerName: "Sunita Agarwal", area: "City Centre 2, New Town, Kolkata", serviceType: "Inverter AC Jet Foam Cleaning", status: "NEW", leadAcceptanceCharge: "60" },
-  { id: "lead-kol-103", customerName: "Pranab Ghosh", area: "Dum Dum Cantonment, Kolkata", serviceType: "Double Door Refrigerator Gas Leak Repair", status: "NEW", leadAcceptanceCharge: "45" },
-  { id: "lead-kol-104", customerName: "Rina Das", area: "Taratala Crossing, Behala", serviceType: "25L Geyser Heating Element Replacement", status: "ONGOING", leadAcceptanceCharge: "40" },
+  { id: "lead-kol-101", customerName: "Rajdeep Banerjee", phone: "+91 98301 23456", address: "Plot 42, Block CA, Sector 1, Salt Lake, Kolkata 700064", area: "Sector 1, Salt Lake, Kolkata", serviceType: "RO Membrane & TDS Filter Service", status: "ACCEPTED", leadAcceptanceCharge: "50" },
+  { id: "lead-kol-102", customerName: "Sunita Agarwal", phone: "******8821", address: "********, New Town, 700***", area: "City Centre 2, New Town, Kolkata", serviceType: "Inverter AC Jet Foam Cleaning", status: "NEW", leadAcceptanceCharge: "60" },
+  { id: "lead-kol-103", customerName: "Pranab Ghosh", phone: "******4412", address: "********, Dum Dum, 700***", area: "Dum Dum Cantonment, Kolkata", serviceType: "Double Door Refrigerator Gas Leak Repair", status: "NEW", leadAcceptanceCharge: "45" },
+  { id: "lead-kol-104", customerName: "Rina Das", phone: "+91 98319 87654", address: "14/2B Diamond Harbour Road, Taratala Crossing, Behala, Kolkata 700038", area: "Taratala Crossing, Behala", serviceType: "25L Geyser Heating Element Replacement", status: "ONGOING", leadAcceptanceCharge: "40" },
 ];
 
 const leadStatusTone: Record<string, "gold" | "teal" | "success" | "danger" | "neutral"> = {
@@ -175,32 +177,47 @@ export function VendorDashboardPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {leads.map((lead) => (
-            <div key={lead.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-4 border border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-colors">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-base text-gray-900 dark:text-white">{lead.customerName}</p>
-                  <Badge tone={leadStatusTone[lead.status] ?? "neutral"}>{lead.status.replace(/_/g, " ")}</Badge>
+          {leads.map((lead) => {
+            const isNew = lead.status === "NEW";
+            return (
+              <div key={lead.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-4 border border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-base text-gray-900 dark:text-white">{lead.customerName}</p>
+                    <Badge tone={leadStatusTone[lead.status] ?? "neutral"}>{lead.status.replace(/_/g, " ")}</Badge>
+                    {isNew ? (
+                      <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                        🔒 Masked Pre-Accept
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                        ✓ Unlocked
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
+                    🔧 {lead.serviceType ?? "Appliance Service"} • 📍 {lead.address || lead.area || "Kolkata"}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
+                    📞 {lead.phone || (isNew ? "******•••• (masked)" : "Not shared")}
+                  </p>
                 </div>
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">
-                  🔧 {lead.serviceType ?? "Appliance Service"} • 📍 {lead.area ?? "Kolkata"}
-                </p>
-              </div>
 
-              <div className="flex items-center gap-3">
-                {lead.leadAcceptanceCharge && (
-                  <span className="font-mono text-xs font-bold text-[#c2410c] dark:text-orange-400">
-                    {lead.leadAcceptanceCharge} Coins
-                  </span>
-                )}
-                <Link to={`/vendor/leads/${lead.id}`}>
-                  <Button accent="orange" variant="secondary" className="!py-1.5 !px-3 text-xs font-bold">
-                    Open Job →
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                  {lead.leadAcceptanceCharge && (
+                    <span className="font-mono text-xs font-bold text-[#c2410c] dark:text-orange-400">
+                      {lead.leadAcceptanceCharge} Coins
+                    </span>
+                  )}
+                  <Link to={`/vendor/leads/${lead.id}`}>
+                    <Button accent="orange" variant="secondary" className="!py-1.5 !px-3 text-xs font-bold">
+                      Open Job →
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
     </div>

@@ -12,16 +12,22 @@ interface Order {
   customerPhone?: string;
   itemsSummary?: string;
   technicianName?: string;
+  assignedVendor?: {
+    id?: string;
+    fullName: string;
+    phone?: string;
+    vendorCode?: string;
+  } | null;
   createdAt?: string;
 }
 
 const ORDER_STATUSES = ["PENDING", "ACCEPTED", "DISPATCHED", "COMPLETED", "CONFIRMED", "CANCELLED"];
 
 const DEFAULT_ORDERS: Order[] = [
-  { id: "ORD-KOL-9021", status: "DISPATCHED", totalAmount: 1499, orderType: "SPARE_PARTS", customerName: "Sourav Ganguly", customerPhone: "+91 98301 22981", itemsSummary: "R32 Refrigerant Gas Canister (3 kg)", technicianName: "Subhashish Roy", createdAt: new Date().toISOString() },
-  { id: "ORD-KOL-9022", status: "ACCEPTED", totalAmount: 2999, orderType: "SERVICE_AMC", customerName: "Ananya Roy", customerPhone: "+91 98311 44092", itemsSummary: "RO Comprehensive AMC with 2 Filter Replacements", technicianName: "Tanmoy Mukherjee", createdAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: "ORD-KOL-9021", status: "DISPATCHED", totalAmount: 1499, orderType: "SPARE_PARTS", customerName: "Sourav Ganguly", customerPhone: "+91 98301 22981", itemsSummary: "R32 Refrigerant Gas Canister (3 kg)", technicianName: "Subhashish Roy", assignedVendor: { fullName: "Subhashish Roy", phone: "+91 9051607464", vendorCode: "VND-KOL-892" }, createdAt: new Date().toISOString() },
+  { id: "ORD-KOL-9022", status: "ACCEPTED", totalAmount: 2999, orderType: "SERVICE_AMC", customerName: "Ananya Roy", customerPhone: "+91 98311 44092", itemsSummary: "RO Comprehensive AMC with 2 Filter Replacements", technicianName: "Tanmoy Mukherjee", assignedVendor: { fullName: "Tanmoy Mukherjee", phone: "+91 9831144092", vendorCode: "VND-KOL-412" }, createdAt: new Date(Date.now() - 3600000).toISOString() },
   { id: "ORD-KOL-9023", status: "PENDING", totalAmount: 650, orderType: "SPARE_PARTS", customerName: "Bimal Sen", customerPhone: "+91 98305 11094", itemsSummary: "Sediment & Carbon Pre-Filter Combo Kit", createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: "ORD-KOL-9024", status: "COMPLETED", totalAmount: 480, orderType: "SERVICE", customerName: "Rina Das", customerPhone: "+91 98308 44012", itemsSummary: "2000W Incoloy Geyser Heating Element", technicianName: "Subhashish Roy", createdAt: new Date(Date.now() - 14400000).toISOString() },
+  { id: "ORD-KOL-9024", status: "COMPLETED", totalAmount: 480, orderType: "SERVICE", customerName: "Rina Das", customerPhone: "+91 98308 44012", itemsSummary: "2000W Incoloy Geyser Heating Element", technicianName: "Subhashish Roy", assignedVendor: { fullName: "Subhashish Roy", phone: "+91 9051607464", vendorCode: "VND-KOL-892" }, createdAt: new Date(Date.now() - 14400000).toISOString() },
 ];
 
 export function AdminOrdersPage() {
@@ -193,7 +199,7 @@ export function AdminOrdersPage() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                    {o.technicianName || "Subhashish Roy"}
+                    {o.assignedVendor?.fullName || o.technicianName || "Unassigned"}
                   </td>
                   <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
                     ₹{Number(o.totalAmount || 1200).toLocaleString("en-IN")}
