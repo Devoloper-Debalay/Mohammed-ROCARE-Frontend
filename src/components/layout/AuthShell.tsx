@@ -38,19 +38,33 @@ export function AuthShell({ children, portalName, accent, tagline }: AuthShellPr
         </div>
         <p className="text-xs text-ink-soft/60">© {new Date().getFullYear()} ROCARE. All rights reserved.</p>
       </div>
-      <div
-        className="relative hidden items-center justify-center overflow-hidden lg:flex"
-        style={{ backgroundColor: "var(--color-ink)" }}
-      >
+      <div className="relative hidden items-center justify-center overflow-hidden lg:flex bg-slate-50 dark:bg-[#070b14] border-l border-slate-200 dark:border-gray-800/80 transition-colors duration-200">
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-40 dark:opacity-30 pointer-events-none transition-opacity duration-300"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 20%, ${accentVar[accent]}55, transparent 45%), radial-gradient(circle at 80% 80%, ${accentVar[accent]}33, transparent 40%)`,
+            backgroundImage: `radial-gradient(circle at 25% 25%, ${accentVar[accent]}35, transparent 50%), radial-gradient(circle at 75% 75%, ${accentVar[accent]}25, transparent 50%)`,
           }}
         />
-        <div className="relative z-10 flex flex-col items-center text-center">
-          <StageRing stages={stages} activeIndex={2} accent={accentVar[accent]} size={260} centerLabel="Live" centerSub="pipeline" light />
-          <p className="mt-8 max-w-xs font-display text-2xl font-medium leading-snug text-white">{tagline}</p>
+        {/* Subtle decorative grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(var(--color-ink) 1px, transparent 1px)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col items-center text-center px-8">
+          <StageRing
+            stages={stages}
+            activeIndex={2}
+            accent={accentVar[accent]}
+            size={260}
+            centerLabel="Live"
+            centerSub="pipeline"
+          />
+          <p className="mt-8 max-w-xs font-display text-2xl font-semibold leading-snug text-ink transition-colors duration-200">
+            {tagline}
+          </p>
         </div>
       </div>
     </div>

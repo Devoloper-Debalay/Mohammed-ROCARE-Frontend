@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { PortalShell } from "@/components/layout/PortalShell";
+import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { useVendorAuth } from "@/store/authStore";
 
 const navItems = [
@@ -30,6 +31,8 @@ export function VendorPortalLayout() {
       }}
     >
       <Outlet />
+      <FloatingChatbot botName="ROCARE Assistant" botSubtitle="Vendor Helpdesk AI" />
     </PortalShell>
   );
 }
+

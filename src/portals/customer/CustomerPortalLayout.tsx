@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { PortalShell } from "@/components/layout/PortalShell";
+import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { useCustomerAuth } from "@/store/authStore";
 import { customerApi, portalStorage, unwrapList } from "@/lib/apiClient";
 
@@ -139,6 +140,7 @@ export function CustomerPortalLayout() {
       }}
     >
       <Outlet />
+      <FloatingChatbot botName="ROCARE Assistant" botSubtitle="Customer Support AI" />
     </PortalShell>
   );
 }
