@@ -144,49 +144,53 @@ export function SuperAdminBranchesPage() {
         {loading ? (
           <div className="h-36 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Branch Hub Name</th>
-                <th className="py-3 px-4">Branch Code</th>
-                <th className="py-3 px-4">Address / Pincode</th>
-                <th className="py-3 px-4">Contact Phone</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {branches.map((b) => (
-                <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Branch Hub Name",
+              "City / State",
+              "Service Pincode",
+              "Contact Helpline",
+              "Operational Status",
+              "Actions",
+            ]}
+          >
+            {branches.map((b) => (
+              <tr key={b.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3.5 px-4">
+                  <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                     <span>📍</span> {b.name}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {b.code}
-                  </td>
-                  <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
-                    <p>{b.address || b.city}</p>
-                    <p className="font-mono text-[11px] text-gray-500">{b.city}, PIN: {b.pincode || "700001"}</p>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-semibold text-gray-800 dark:text-gray-200">
-                    {b.phone || "+91 93115 87744"}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                      OPERATIONAL
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => setToast(`✓ Viewing branch hub config for ${b.name}`)}
-                      className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px]"
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                  </p>
+                  <span className="font-mono text-[11px] text-gray-500">{b.code || b.id}</span>
+                </td>
+                <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                  {b.city}, {b.state || "West Bengal"}
+                </td>
+                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                  {b.pincode || "700001"}
+                </td>
+                <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">
+                  {b.phone || "+91 93115 87744"}
+                </td>
+                <td className="py-3.5 px-4">
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                      b.isActive
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
+                        : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-300 dark:border-rose-700"
+                    }`}
+                  >
+                    {b.isActive ? "OPERATIONAL" : "INACTIVE"}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <span className="inline-block rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-2.5 py-1 font-bold text-[11px]">
+                    Active Zone
+                  </span>
+                </td>
+              </tr>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>

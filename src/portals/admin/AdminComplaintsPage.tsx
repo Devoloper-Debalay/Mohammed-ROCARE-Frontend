@@ -145,15 +145,15 @@ export function AdminComplaintsPage() {
         icon="📋"
         outlineTone="warning"
         tools={
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl text-xs font-bold">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1e293b] p-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-inner">
             {(["ALL", "OPEN", "IN_PROGRESS", "RESOLVED"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
                 className={`px-3 py-1 rounded-lg transition-all ${
                   filterStatus === s
-                    ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-gray-600 dark:text-gray-300"
+                    ? "bg-white dark:bg-[#0f172a] text-blue-600 dark:text-blue-400 font-black shadow-sm border border-slate-200 dark:border-slate-600"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {s.replace("_", " ")}
@@ -170,66 +170,65 @@ export function AdminComplaintsPage() {
             <p className="font-bold text-sm">No complaints found under "{filterStatus}".</p>
           </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Ticket ID</th>
-                <th className="py-3 px-4">Subject &amp; Issue Details</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Technician</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Ticket ID",
+              "Subject & Issue Details",
+              "Customer",
+              "Technician",
+              "Status",
+              "Actions",
+            ]}
+          >
+            {filtered.map((c) => (
+              <tr key={c.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                  #{c.id}
+                </td>
+                <td className="py-3.5 px-4 max-w-sm">
+                  <p className="font-bold text-xs text-gray-900 dark:text-white">{c.subject}</p>
+                  <p className="text-gray-600 dark:text-gray-400 truncate text-[11px] mt-0.5">{c.description}</p>
+                  {c.reply && (
+                    <div className="mt-1 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-900 dark:text-emerald-300">
+                      <strong>Resolution:</strong> {c.reply}
+                    </div>
+                  )}
+                </td>
+                <td className="py-3.5 px-4">
+                  <p className="font-bold text-xs text-gray-900 dark:text-white">{c.customerName || "Customer"}</p>
+                  <p className="text-[11px] text-gray-500">{c.customerPhone || "N/A"}</p>
+                </td>
+                <td className="py-3.5 px-4 font-semibold text-xs text-gray-700 dark:text-gray-300">
+                  {c.technicianName || "Branch General"}
+                </td>
+                <td className="py-3.5 px-4">
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                      c.status === "RESOLVED"
+                        ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
+                        : c.status === "IN_PROGRESS"
+                        ? "bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
+                        : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
+                    }`}
+                  >
+                    {c.status.replace("_", " ")}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <button
+                    onClick={() => {
+                      setSelectedComplaint(c);
+                      setReplyText(c.reply || "");
+                    }}
+                    className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors shadow-sm"
+                  >
+                    {c.reply ? "View / Edit" : "Reply & Resolve"}
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    #{c.id}
-                  </td>
-                  <td className="py-3.5 px-4 max-w-sm">
-                    <p className="font-bold text-gray-900 dark:text-white">{c.subject}</p>
-                    <p className="text-gray-600 dark:text-gray-400 truncate text-[11px] mt-0.5">{c.description}</p>
-                    {c.reply && (
-                      <div className="mt-1 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-900 dark:text-emerald-300">
-                        <strong>Resolution:</strong> {c.reply}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-bold text-gray-900 dark:text-white">{c.customerName || "Customer"}</p>
-                    <p className="text-[11px] text-gray-500">{c.customerPhone || "N/A"}</p>
-                  </td>
-                  <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                    {c.technicianName || "Branch General"}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                        c.status === "RESOLVED"
-                          ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
-                          : c.status === "IN_PROGRESS"
-                          ? "bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700"
-                          : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
-                      }`}
-                    >
-                      {c.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => {
-                        setSelectedComplaint(c);
-                        setReplyText(c.reply || "");
-                      }}
-                      className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors"
-                    >
-                      {c.reply ? "View / Edit" : "Reply & Resolve"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>

@@ -74,10 +74,15 @@ export function createApiClient(portal: PortalKey): AxiosInstance {
     (response) => response,
     (error) => {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        portalStorage.clear(portal);
-        const loginPath = portal === "customer" ? "/customer/login" : portal === "vendor" ? "/vendor/login" : "/staff/login";
-        if (window.location.pathname !== loginPath) {
-          window.location.href = loginPath;
+        const url = error.config?.url || "";
+        const isAuthCheck = url.includes("/auth/") || url.includes("/me") || url.endsWith("/profile");
+        // Only kick user to login if their core session auth token check actually failed
+        if (isAuthCheck || !portalStorage.getToken(portal)) {
+          portalStorage.clear(portal);
+          const loginPath = portal === "customer" ? "/customer/login" : portal === "vendor" ? "/vendor/login" : "/staff/login";
+          if (window.location.pathname !== loginPath) {
+            window.location.href = loginPath;
+          }
         }
       }
       return Promise.reject(error);
@@ -107,8 +112,17 @@ export function unwrapList<T = any>(payload: unknown): T[] {
   if (Array.isArray(payload)) return payload as T[];
   const obj = payload as Record<string, any>;
   if (Array.isArray(obj.data)) return obj.data as T[];
+  if (obj.data && typeof obj.data === "object") {
+    if (Array.isArray(obj.data.data)) return obj.data.data as T[];
+    if (Array.isArray(obj.data.items)) return obj.data.items as T[];
+    if (Array.isArray(obj.data.rows)) return obj.data.rows as T[];
+    if (Array.isArray(obj.data.logs)) return obj.data.logs as T[];
+    if (Array.isArray(obj.data.transactions)) return obj.data.transactions as T[];
+  }
   if (Array.isArray(obj.items)) return obj.items as T[];
   if (Array.isArray(obj.rows)) return obj.rows as T[];
+  if (Array.isArray(obj.logs)) return obj.logs as T[];
+  if (Array.isArray(obj.transactions)) return obj.transactions as T[];
   if (Array.isArray(obj.branches)) return obj.branches as T[];
   if (Array.isArray(obj.admins)) return obj.admins as T[];
   if (Array.isArray(obj.users)) return obj.users as T[];

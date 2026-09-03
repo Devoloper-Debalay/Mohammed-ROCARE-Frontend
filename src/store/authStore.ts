@@ -32,8 +32,13 @@ export interface CustomerUser {
   firstName?: string;
   lastName?: string;
   name?: string;
+  fullName?: string;
   email?: string;
   phone?: string;
+  referralCode?: string;
+  address?: string;
+  city?: string;
+  pincode?: string;
 }
 
 export interface VendorUser {

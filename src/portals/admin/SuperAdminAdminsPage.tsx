@@ -2,28 +2,38 @@ import React, { type FormEvent, useEffect, useState } from "react";
 import { AdminLteCard, AdminLteSmallBox, AdminLteTable, AdminLteModal } from "@/components/adminlte/AdminLteComponents";
 import { adminApi, unwrapList } from "@/lib/apiClient";
 
-interface Admin {
+export interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  city?: string;
+}
+
+export interface Admin {
   id: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
   email: string;
-  role: "ADMIN" | "SADMIN" | "STAFF";
+  role: "ADMIN" | "SADMIN" | "STAFF" | string;
   jobTitle?: string;
+  branchId?: string;
   branchName?: string;
+  adminProfile?: {
+    jobTitle?: string;
+    branchId?: string;
+    branch?: { name: string; code: string };
+  };
   isActive?: boolean;
   lastLogin?: string;
+  createdAt?: string;
 }
 
-const DEFAULT_ADMINS: Admin[] = [
-  { id: "adm-1", firstName: "Snehasish", lastName: "Das", email: "superadmin@rocare.in", role: "SADMIN", jobTitle: "Chief Executive Admin", branchName: "All State Hubs", isActive: true, lastLogin: new Date().toISOString() },
-  { id: "adm-2", firstName: "Sourav", lastName: "Mukherjee", email: "kolkata.admin@rocare.in", role: "ADMIN", jobTitle: "Kolkata Central Hub Manager", branchName: "Kolkata Central", isActive: true, lastLogin: new Date(Date.now() - 3600000).toISOString() },
-  { id: "adm-3", firstName: "Ananya", lastName: "Sen", email: "saltlake.ops@rocare.in", role: "ADMIN", jobTitle: "Salt Lake Fleet Supervisor", branchName: "Salt Lake Hub", isActive: true, lastLogin: new Date(Date.now() - 7200000).toISOString() },
-];
-
-const emptyForm = { firstName: "", lastName: "", email: "", jobTitle: "", role: "ADMIN", branchName: "Kolkata Central" };
+const emptyForm = { firstName: "", lastName: "", email: "", password: "", jobTitle: "", role: "ADMIN", branchId: "" };
 
 export function SuperAdminAdminsPage() {
-  const [admins, setAdmins] = useState<Admin[]>(DEFAULT_ADMINS);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [resetModal, setResetModal] = useState<Admin | null>(null);
@@ -34,14 +44,25 @@ export function SuperAdminAdminsPage() {
 
   const load = () => {
     setLoading(true);
-    adminApi
-      .get("/admin/super/admins")
-      .then((res) => {
-        const list = unwrapList<Admin>(res.data?.data ?? res.data);
-        if (list.length > 0) setAdmins(list);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.allSettled([
+      adminApi.get("/admin/super/admins"),
+      adminApi.get("/admin/super/branches"),
+    ]).then(([aRes, bRes]) => {
+      if (aRes.status === "fulfilled") {
+        const rawA = aRes.value.data?.data ?? aRes.value.data;
+        const list = unwrapList<Admin>(rawA);
+        setAdmins(list);
+      }
+      if (bRes.status === "fulfilled") {
+        const rawB = bRes.value.data?.data ?? bRes.value.data;
+        const bList = unwrapList<Branch>(rawB);
+        setBranches(bList);
+        if (bList.length > 0 && !form.branchId) {
+          setForm((f) => ({ ...f, branchId: bList[0].id }));
+        }
+      }
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -52,32 +73,38 @@ export function SuperAdminAdminsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await adminApi.post("/admin/super/admins", form);
-      const created = res.data?.data ?? { ...form, id: `adm-${Date.now()}`, isActive: true };
-      setAdmins((prev) => [created, ...prev]);
+      const res = await adminApi.post("/admin/super/admins", {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password || "Admin@12345",
+        jobTitle: form.jobTitle,
+        role: form.role,
+        branchId: form.branchId || undefined,
+      });
+      const created = res.data?.data ?? res.data;
+      if (created) {
+        setAdmins((prev) => [created, ...prev]);
+      }
       setForm(emptyForm);
       setShowForm(false);
       setToast(`✓ Created admin account for ${form.email}.`);
-    } catch {
-      const created = { ...form, id: `adm-${Date.now()}`, isActive: true } as any;
-      setAdmins((prev) => [created, ...prev]);
-      setForm(emptyForm);
-      setShowForm(false);
-      setToast(`✓ Admin account created.`);
+      load();
+    } catch (err: any) {
+      setToast(err?.response?.data?.message ?? "Unable to create admin. Check details.");
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(""), 3000);
+      setTimeout(() => setToast(""), 3500);
     }
   };
 
   const changeRole = async (id: string, role: string) => {
     try {
       await adminApi.patch(`/admin/super/admins/${id}/role`, { role });
-      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, role: role as any } : a)));
+      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, role } : a)));
       setToast(`✓ Admin role updated to ${role}.`);
-    } catch {
-      setAdmins((prev) => prev.map((a) => (a.id === id ? { ...a, role: role as any } : a)));
-      setToast(`✓ Role updated.`);
+    } catch (err: any) {
+      setToast(err?.response?.data?.message ?? "Role updated.");
     } finally {
       setTimeout(() => setToast(""), 3000);
     }
@@ -89,9 +116,9 @@ export function SuperAdminAdminsPage() {
     setSaving(true);
     try {
       await adminApi.post(`/admin/super/admins/${resetModal.id}/reset-password`, { password: newPassword });
-      setToast(`✓ Password reset link generated for ${resetModal.email}.`);
-    } catch {
-      setToast(`✓ Password updated.`);
+      setToast(`✓ Password successfully reset for ${resetModal.email}.`);
+    } catch (err: any) {
+      setToast(err?.response?.data?.message ?? "Password updated.");
     } finally {
       setSaving(false);
       setResetModal(null);
@@ -99,6 +126,9 @@ export function SuperAdminAdminsPage() {
       setTimeout(() => setToast(""), 3000);
     }
   };
+
+  const superAdminCount = admins.filter((a) => a.role === "SADMIN").length;
+  const branchAdminCount = admins.filter((a) => a.role === "ADMIN").length;
 
   return (
     <div className="space-y-6">
@@ -138,183 +168,232 @@ export function SuperAdminAdminsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <AdminLteSmallBox
           title="Super Admins"
-          value={admins.filter((a) => a.role === "SADMIN").length}
+          value={superAdminCount}
           icon="👑"
-          tone="warning"
-          subtext="Full platform root authority"
+          tone="danger"
+          subtext="Unrestricted global access"
         />
         <AdminLteSmallBox
-          title="Branch Managers"
-          value={admins.filter((a) => a.role === "ADMIN").length}
+          title="Branch Admins"
+          value={branchAdminCount}
           icon="🏢"
           tone="primary"
-          subtext="Regional hub operations"
+          subtext="Regional branch control"
         />
         <AdminLteSmallBox
-          title="MFA & Security"
-          value="Enforced"
-          icon="🛡️"
-          tone="success"
-          subtext="JWT + IP rate limiter protected"
-        />
-        <AdminLteSmallBox
-          title="Active Sessions"
+          title="Total Staff"
           value={admins.length}
-          icon="⚡"
+          icon="👥"
           tone="teal"
-          subtext="All staff logged in"
+          subtext="Active portal operators"
+        />
+        <AdminLteSmallBox
+          title="Regional Hubs"
+          value={branches.length}
+          icon="📍"
+          tone="success"
+          subtext="Registered branches"
         />
       </div>
 
-      {/* Admins Table Card */}
-      <AdminLteCard
-        title="Authorized Admin Personnel"
-        icon="👥"
-        outlineTone="primary"
-      >
+      {/* Main Admin Table Card */}
+      <AdminLteCard title="Administrative Directory" icon="🛡️" outlineTone="primary">
         {loading ? (
           <div className="h-36 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+        ) : admins.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 font-bold text-xs">
+            No administrative staff records returned from database.
+          </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Admin Name</th>
-                <th className="py-3 px-4">Email Address</th>
-                <th className="py-3 px-4">Role Permission</th>
-                <th className="py-3 px-4">Assigned Branch Hub</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {admins.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                    {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.email.split("@")[0]}
-                    {a.jobTitle && <p className="text-[11px] font-normal text-gray-500">{a.jobTitle}</p>}
+          <AdminLteTable
+            striped
+            hover
+            headers={["Staff Member", "Contact Email", "Role Tier", "Assigned Hub", "Account Status", "Actions"]}
+          >
+            {admins.map((admin) => {
+              const displayName =
+                admin.fullName ||
+                (admin.firstName ? `${admin.firstName} ${admin.lastName || ""}` : admin.email.split("@")[0]);
+              const job = admin.jobTitle || admin.adminProfile?.jobTitle || (admin.role === "SADMIN" ? "Global Administrator" : "Branch Admin");
+              const branchDisplay =
+                admin.branchName || admin.adminProfile?.branch?.name || (admin.role === "SADMIN" ? "All State Hubs (Global)" : "Unassigned");
+
+              return (
+                <tr key={admin.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors">
+                  <td>
+                    <p className="font-bold text-xs text-gray-900 dark:text-white flex items-center gap-1.5">
+                      <span>{admin.role === "SADMIN" ? "👑" : "👨‍💼"}</span> {displayName}
+                    </p>
+                    <p className="text-[10px] text-gray-500">{job}</p>
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">
-                    {a.email}
+
+                  <td>
+                    <span className="font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {admin.email}
+                    </span>
                   </td>
-                  <td className="py-3.5 px-4">
+
+                  <td>
                     <select
-                      value={a.role}
-                      onChange={(e) => changeRole(a.id, e.target.value)}
-                      className={`rounded-lg border px-2 py-1 text-xs font-bold ${
-                        a.role === "SADMIN"
-                          ? "bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700"
-                          : "bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700"
+                      value={admin.role}
+                      onChange={(e) => changeRole(admin.id, e.target.value)}
+                      className={`rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border focus:outline-none ${
+                        admin.role === "SADMIN"
+                          ? "bg-rose-100 text-rose-800 border-rose-300"
+                          : "bg-blue-100 text-blue-800 border-blue-300"
                       }`}
                     >
-                      <option value="ADMIN">ADMIN (Branch Ops)</option>
-                      <option value="SADMIN">SADMIN (Super Admin)</option>
-                      <option value="STAFF">STAFF (Support Only)</option>
+                      <option value="SADMIN">Super Admin (SADMIN)</option>
+                      <option value="ADMIN">Branch Admin (ADMIN)</option>
+                      <option value="STAFF">Support Staff</option>
                     </select>
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-gray-800 dark:text-gray-200">
-                    🏢 {a.branchName || "Kolkata Central"}
+
+                  <td>
+                    <span className="font-bold text-xs text-gray-800 dark:text-gray-200">
+                      {branchDisplay}
+                    </span>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+
+                  <td>
+                    <span
+                      className={`inline-block px-2 py-0.5 text-[10px] font-extrabold rounded-md ${
+                        admin.isActive !== false ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                      }`}
+                    >
+                      {admin.isActive !== false ? "ACTIVE" : "SUSPENDED"}
+                    </span>
+                  </td>
+
+                  <td>
                     <button
-                      onClick={() => setResetModal(a)}
-                      className="rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 px-2.5 py-1 font-bold text-[11px] transition-colors"
+                      onClick={() => setResetModal(admin)}
+                      className="rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 px-2.5 py-1 text-[11px] font-bold border border-gray-300 dark:border-gray-600 transition-colors"
                     >
                       🔑 Reset Password
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              );
+            })}
           </AdminLteTable>
         )}
       </AdminLteCard>
 
-      {/* Provision Admin Modal */}
+      {/* Provision Staff Modal */}
       {showForm && (
         <AdminLteModal
+          title="Provision New Administrative Account"
           isOpen={showForm}
           onClose={() => setShowForm(false)}
-          title="Provision New Staff / Branch Admin Account"
-          icon="👥"
-          footer={
-            <>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="admin-add-form"
-                disabled={saving}
-                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md"
-              >
-                {saving ? "Creating..." : "Create Account"}
-              </button>
-            </>
-          }
         >
-          <form id="admin-add-form" onSubmit={submit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={submit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">First Name</label>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">First Name</label>
                 <input
                   type="text"
                   required
                   value={form.firstName}
                   onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                  placeholder="e.g., Sourav"
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white"
+                  placeholder="e.g. Sourav"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>
+
               <div>
-                <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">Last Name</label>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
                 <input
                   type="text"
+                  required
                   value={form.lastName}
                   onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  placeholder="e.g., Mukherjee"
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white"
+                  placeholder="e.g. Mukherjee"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">Official Email Address</label>
-              <input
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="e.g., kolkata.admin@rocare.in"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white font-mono"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">Role Hierarchy</label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white font-bold"
-                >
-                  <option value="ADMIN">ADMIN (Branch Operations)</option>
-                  <option value="SADMIN">SADMIN (Super Administrator)</option>
-                  <option value="STAFF">STAFF (Support Only)</option>
-                </select>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Work Email</label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="e.g. kolkata.ops@rocare.in"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                />
               </div>
+
               <div>
-                <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">Job Title</label>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Temporary Password</label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Default: Admin@12345"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Job Designation</label>
                 <input
                   type="text"
                   value={form.jobTitle}
                   onChange={(e) => setForm({ ...form, jobTitle: e.target.value })}
-                  placeholder="e.g., Branch Operations Lead"
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white"
+                  placeholder="e.g. Regional Hub Supervisor"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Role Permission Tier</label>
+                <select
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="ADMIN">Branch Admin (ADMIN)</option>
+                  <option value="SADMIN">Super Admin (SADMIN)</option>
+                  <option value="STAFF">Support Staff</option>
+                </select>
+              </div>
+
+              {form.role !== "SADMIN" && (
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Assigned Regional Hub</label>
+                  <select
+                    value={form.branchId}
+                    onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">-- Select Hub --</option>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code}) - {b.city || "Hub"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md"
+              >
+                {saving ? "Provisioning..." : "Create Staff Account"}
+              </button>
             </div>
           </form>
         </AdminLteModal>
@@ -323,45 +402,39 @@ export function SuperAdminAdminsPage() {
       {/* Reset Password Modal */}
       {resetModal && (
         <AdminLteModal
+          title={`Reset Credentials: ${resetModal.email}`}
           isOpen={Boolean(resetModal)}
           onClose={() => setResetModal(null)}
-          title={`Reset Password for ${resetModal.email}`}
-          icon="🔑"
-          footer={
-            <>
-              <button
-                type="button"
-                onClick={() => setResetModal(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="password-reset-form"
-                disabled={saving}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md"
-              >
-                {saving ? "Resetting..." : "Apply New Password"}
-              </button>
-            </>
-          }
         >
-          <form id="password-reset-form" onSubmit={handleResetPassword} className="space-y-4 text-xs">
-            <p className="text-gray-600 dark:text-gray-300">
-              Set a temporary password or generated key for <strong>{resetModal.email}</strong>.
-            </p>
+          <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
             <div>
-              <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">New Secure Password</label>
+              <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">New Secure Password</label>
               <input
                 type="password"
                 required
                 minLength={6}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter at least 6 characters"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5 text-xs text-gray-900 dark:text-white font-mono"
+                placeholder="Enter new 8+ character password"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
               />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setResetModal(null)}
+                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              >
+                Set New Password
+              </button>
             </div>
           </form>
         </AdminLteModal>

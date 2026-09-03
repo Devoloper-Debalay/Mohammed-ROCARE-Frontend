@@ -186,54 +186,53 @@ export function SuperAdminReportsPage() {
         {loading ? (
           <div className="h-36 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Branch Hub</th>
-                <th className="py-3 px-4">Completed Jobs</th>
-                <th className="py-3 px-4">Revenue Generated</th>
-                <th className="py-3 px-4">Share of Total</th>
-                <th className="py-3 px-4">CSAT Rating</th>
-                <th className="py-3 px-4 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {branchList.map((b) => {
-                const bRev = Number(b.revenue || 0);
-                const sharePct = totalRev > 0 ? ((bRev / totalRev) * 100).toFixed(1) : "25.0";
-                return (
-                  <tr key={b.branch} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                    <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <span>📍</span> {b.branch}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                      {Number(b.completedJobs || 0)}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
-                      ₹{bRev.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                          <div className="h-full bg-blue-600" style={{ width: `${Math.min(100, Math.max(0, Number(sharePct)))}%` }} />
-                        </div>
-                        <span className="font-mono text-xs">{sharePct}%</span>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Branch Hub",
+              "Completed Jobs",
+              "Revenue Generated",
+              "Share of Total",
+              "CSAT Rating",
+              "Status",
+            ]}
+          >
+            {branchList.map((b) => {
+              const bRev = Number(b.revenue || 0);
+              const sharePct = totalRev > 0 ? ((bRev / totalRev) * 100).toFixed(1) : "25.0";
+              return (
+                <tr key={b.branch} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span>📍</span> {b.branch}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                    {Number(b.completedJobs || 0)}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
+                    ₹{bRev.toLocaleString("en-IN")}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-24 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                        <div className="h-full bg-blue-600" style={{ width: `${Math.min(100, Math.max(0, Number(sharePct)))}%` }} />
                       </div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                        {b.satisfaction || "4.9 ★"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <span className="inline-block rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[10px] font-bold">
-                        Top Performer
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+                      <span className="font-mono text-xs">{sharePct}%</span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                      {b.satisfaction || "4.9 ★"}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <span className="inline-block rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[10px] font-bold">
+                      Top Performer
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </AdminLteTable>
         )}
       </AdminLteCard>

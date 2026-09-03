@@ -150,60 +150,65 @@ export function SuperAdminUsersPage() {
             <p className="font-bold text-sm">No customers matching "{search}".</p>
           </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Customer Name</th>
-                <th className="py-3 px-4">Phone / City</th>
-                <th className="py-3 px-4">Email Address</th>
-                <th className="py-3 px-4">Total Orders</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Customer Name",
+              "Phone / City",
+              "Email Address",
+              "Total Orders",
+              "Status",
+              "Actions",
+            ]}
+          >
+            {filtered.map((u) => (
+              <tr key={u.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3 px-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs">
+                    {(u.firstName || "U")[0]}
+                  </div>
+                  <div>
+                    <p>{u.firstName} {u.lastName}</p>
+                    <span className="font-mono text-[10px] text-gray-400">ID: #{u.id.slice(0, 8)}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-4">
+                  <p className="font-mono text-gray-900 dark:text-gray-200">{u.phone || "—"}</p>
+                  <p className="text-[11px] text-gray-500">📍 {u.city || "Kolkata"}</p>
+                </td>
+                <td className="py-3 px-4 text-gray-600 dark:text-gray-400 font-mono text-xs">
+                  {u.email || "—"}
+                </td>
+                <td className="py-3 px-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                  {u.ordersCount ?? 2} Bookings
+                </td>
+                <td className="py-3 px-4">
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                      u.isActive
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
+                        : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-300 dark:border-rose-700"
+                    }`}
+                  >
+                    {u.isActive ? "ACTIVE" : "SUSPENDED"}
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-right">
+                  <button
+                    onClick={() => toggleActive(u.id, u.isActive)}
+                    disabled={actingId === u.id}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors shadow-sm ${
+                      u.isActive
+                        ? "bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                        : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    }`}
+                  >
+                    {u.isActive ? "Suspend" : "Activate"}
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {filtered.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                    {u.firstName} {u.lastName || ""}
-                  </td>
-                  <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
-                    <p className="font-mono">{u.phone || "N/A"}</p>
-                    <p className="text-[11px] text-gray-500">{u.city || "Kolkata"}</p>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-gray-300">
-                    {u.email || "No email linked"}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {u.ordersCount ?? 1} Bookings
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                        u.isActive
-                          ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
-                          : "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700"
-                      }`}
-                    >
-                      {u.isActive ? "ACTIVE" : "SUSPENDED"}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => toggleActive(u.id, u.isActive)}
-                      disabled={actingId === u.id}
-                      className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                        u.isActive
-                          ? "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 hover:bg-rose-100"
-                          : "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100"
-                      }`}
-                    >
-                      {u.isActive ? "Suspend" : "Activate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>

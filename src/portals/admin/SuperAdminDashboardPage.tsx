@@ -178,51 +178,50 @@ export function SuperAdminDashboardPage() {
             <p className="font-bold text-xs">No branch hubs created yet.</p>
           </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Branch Hub &amp; Code</th>
-                <th className="py-3 px-4">Location / Territory</th>
-                <th className="py-3 px-4">Technicians</th>
-                <th className="py-3 px-4">Leads / Orders</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Branch Hub & Code",
+              "Location / Territory",
+              "Technicians",
+              "Leads / Orders",
+              "Status",
+              "Actions",
+            ]}
+          >
+            {branches.map((b) => (
+              <tr key={b.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3.5 px-4">
+                  <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <span>📍</span> {b.name}
+                  </p>
+                  <span className="font-mono text-[11px] text-gray-500">{b.code || b.id}</span>
+                </td>
+                <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                  {b.city}, {b.state || "West Bengal"}
+                </td>
+                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                  {b._count?.vendors ?? b.activeTechs ?? 12} Techs
+                </td>
+                <td className="py-3.5 px-4 font-mono font-bold text-gray-800 dark:text-gray-200">
+                  {b._count?.leads ?? 45} Leads · {b._count?.orders ?? 18} Orders
+                </td>
+                <td className="py-3.5 px-4">
+                  <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    OPERATIONAL
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <Link
+                    to="/staff/super-admin/branches"
+                    className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors"
+                  >
+                    Configure Hub
+                  </Link>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {branches.map((b) => (
-                <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4">
-                    <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                      <span>📍</span> {b.name}
-                    </p>
-                    <span className="font-mono text-[11px] text-gray-500">{b.code || b.id}</span>
-                  </td>
-                  <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                    {b.city}, {b.state || "West Bengal"}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {b._count?.vendors ?? b.activeTechs ?? 12} Techs
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-gray-800 dark:text-gray-200">
-                    {b._count?.leads ?? 45} Leads · {b._count?.orders ?? 18} Orders
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                      OPERATIONAL
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <Link
-                      to="/staff/super-admin/branches"
-                      className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px]"
-                    >
-                      Configure Hub
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>

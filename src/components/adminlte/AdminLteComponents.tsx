@@ -201,18 +201,41 @@ export function AdminLteCard({
 }
 
 /* ==========================================================================
-   AdminLTE 4 Table Wrapper
+   AdminLTE 4 Table Wrapper with Headers & Styling
    ========================================================================== */
+export interface AdminLteTableProps {
+  children: ReactNode;
+  headers?: string[];
+  striped?: boolean;
+  hover?: boolean;
+  className?: string;
+}
+
 export function AdminLteTable({
   children,
+  headers,
+  striped = true,
+  hover = true,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+}: AdminLteTableProps) {
   return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="w-full text-left text-sm border-collapse">{children}</table>
+    <div className={`overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 ${className}`}>
+      <table className="w-full text-left text-xs border-collapse">
+        {headers && headers.length > 0 && (
+          <thead>
+            <tr className="bg-slate-100 dark:bg-[#1e293b] text-slate-750 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 font-bold uppercase tracking-wider text-[11px]">
+              {headers.map((h, i) => (
+                <th key={i} className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody className={`divide-y divide-gray-100 dark:divide-gray-800 ${striped ? "[&>tr:nth-child(even)]:bg-gray-50/60 dark:[&>tr:nth-child(even)]:bg-gray-800/40" : ""} ${hover ? "[&>tr]:hover:bg-blue-50/50 dark:[&>tr]:hover:bg-blue-950/20 transition-colors" : ""}`}>
+          {children}
+        </tbody>
+      </table>
     </div>
   );
 }

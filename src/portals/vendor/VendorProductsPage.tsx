@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -13,24 +14,12 @@ interface Item {
   description?: string;
 }
 
-const DEFAULT_PARTS: Item[] = [
-  { id: "part-ro-1", name: "0.0001µm High-TDS RO Membrane 80 GPD", category: "RO", price: 650, stock: 25 },
-  { id: "part-ro-2", name: "Pre-Sediment Spun 5µm Filter 10 Inch (Pack of 4)", category: "RO", price: 280, stock: 60 },
-  { id: "part-ro-3", name: "Copper Alkaline Mineral Cartridge Post-Filter", category: "RO", price: 420, stock: 30 },
-  { id: "part-ac-1", name: "R32 Refrigerant Gas Canister (3 kg)", category: "AC", price: 1450, stock: 15 },
-  { id: "part-ac-2", name: "Universal Split AC Inverter Control Board", category: "AC", price: 890, stock: 12 },
-  { id: "part-fridge-1", name: "R134a Eco Hydrocarbon Refrigerant Can", category: "FRIDGE", price: 550, stock: 20 },
-  { id: "part-fridge-2", name: "Bimetal Defrost Thermostat & Thermal Fuse Kit", category: "FRIDGE", price: 320, stock: 35 },
-  { id: "part-geyser-1", name: "2000W Incoloy 800 Geyser Heating Element with Anode", category: "GEYSER", price: 480, stock: 40 },
-  { id: "part-geyser-2", name: "Stem Thermostat 7-Inch Safety Cutoff Switch", category: "GEYSER", price: 210, stock: 45 },
-];
-
-function ItemGrid({ items, onBuy, buyingId }: { items: Item[]; onBuy: (id: string) => void; buyingId: string | null }) {
+function ItemGrid({ items, onBuy, buyingId, emptyMsg }: { items: Item[]; onBuy: (id: string) => void; buyingId: string | null; emptyMsg: string }) {
   if (items.length === 0)
     return (
       <Card className="p-10 text-center border border-gray-200 dark:border-gray-800">
-        <p className="font-display text-lg font-bold text-gray-900 dark:text-white">Nothing listed yet</p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Check back once your branch admin adds items.</p>
+        <p className="font-display text-lg font-bold text-gray-900 dark:text-white">No items in catalog</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{emptyMsg}</p>
       </Card>
     );
   return (
@@ -63,23 +52,37 @@ function ItemGrid({ items, onBuy, buyingId }: { items: Item[]; onBuy: (id: strin
 }
 
 export function VendorProductsPage() {
-  const [tab, setTab] = useState<"products" | "parts">("parts");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") === "products" ? "products" : "parts";
+  const [tab, setTab] = useState<"products" | "parts">(initialTab);
   const [products, setProducts] = useState<Item[]>([]);
-  const [parts, setParts] = useState<Item[]>(DEFAULT_PARTS);
+  const [parts, setParts] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    const qTab = searchParams.get("tab");
+    if (qTab === "products" || qTab === "parts") {
+      setTab(qTab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (newTab: "products" | "parts") => {
+    setTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
 
   const load = () => {
     setLoading(true);
     Promise.allSettled([vendorApi.get("/vendor/products"), vendorApi.get("/vendor/parts")]).then(([p, pt]) => {
       if (p.status === "fulfilled") {
         const pList = unwrapList<Item>(p.value.data?.data ?? p.value.data);
-        if (pList.length > 0) setProducts(pList);
+        setProducts(pList);
       }
       if (pt.status === "fulfilled") {
         const ptList = unwrapList<Item>(pt.value.data?.data ?? pt.value.data);
-        if (ptList.length > 0) setParts(ptList);
+        setParts(ptList);
       }
       setLoading(false);
     });
@@ -120,7 +123,7 @@ export function VendorProductsPage() {
         ] as const).map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => handleTabChange(t.key)}
             className={`rounded-full px-5 py-2 text-xs font-bold transition-all ${
               tab === t.key ? "bg-[#c2410c] text-white shadow-md" : "text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white"
             }`}
@@ -139,7 +142,16 @@ export function VendorProductsPage() {
       {loading ? (
         <div className="h-40 animate-pulse rounded-card bg-gray-200 dark:bg-gray-800" />
       ) : (
-        <ItemGrid items={tab === "products" ? (products.length > 0 ? products : DEFAULT_PARTS.slice(0, 3)) : parts} onBuy={buy} buyingId={buyingId} />
+        <ItemGrid
+          items={tab === "products" ? products : parts}
+          onBuy={buy}
+          buyingId={buyingId}
+          emptyMsg={
+            tab === "products"
+              ? "Appliance units added by the superadmin or branch admin will appear here."
+              : "Spare parts added to your branch inventory will appear here."
+          }
+        />
       )}
     </div>
   );

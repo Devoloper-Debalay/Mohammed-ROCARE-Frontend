@@ -1,17 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { AdminLteCard, AdminLteSmallBox, AdminLteTable } from "@/components/adminlte/AdminLteComponents";
+import { AdminLteCard, AdminLteSmallBox, AdminLteTable, AdminLteModal } from "@/components/adminlte/AdminLteComponents";
 import { GoogleMapsTracker } from "@/components/tracking/GoogleMapsTracker";
 import { adminApi, unwrapList } from "@/lib/apiClient";
 
-interface Order {
+export interface OrderItem {
+  id: string;
+  productId?: string;
+  partId?: string;
+  quantity: number;
+  unitPrice?: number | string;
+  product?: { name: string; price: number | string };
+  part?: { name: string; price: number | string };
+}
+
+export interface Order {
   id: string;
   status: string;
   totalAmount?: string | number;
-  orderType: string;
+  orderType?: string;
   customerName?: string;
   customerPhone?: string;
+  deliveryAddress?: string;
+  customer?: {
+    id: string;
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+  };
   itemsSummary?: string;
+  items?: OrderItem[];
   technicianName?: string;
+  assignedVendorId?: string | null;
   assignedVendor?: {
     id?: string;
     fullName: string;
@@ -21,33 +42,50 @@ interface Order {
   createdAt?: string;
 }
 
+export interface VendorBrief {
+  id: string;
+  fullName: string;
+  phone: string;
+  vendorCode: string;
+  specialization?: string;
+}
+
 const ORDER_STATUSES = ["PENDING", "ACCEPTED", "DISPATCHED", "COMPLETED", "CONFIRMED", "CANCELLED"];
 
-const DEFAULT_ORDERS: Order[] = [
-  { id: "ORD-KOL-9021", status: "DISPATCHED", totalAmount: 1499, orderType: "SPARE_PARTS", customerName: "Sourav Ganguly", customerPhone: "+91 98301 22981", itemsSummary: "R32 Refrigerant Gas Canister (3 kg)", technicianName: "Subhashish Roy", assignedVendor: { fullName: "Subhashish Roy", phone: "+91 9051607464", vendorCode: "VND-KOL-892" }, createdAt: new Date().toISOString() },
-  { id: "ORD-KOL-9022", status: "ACCEPTED", totalAmount: 2999, orderType: "SERVICE_AMC", customerName: "Ananya Roy", customerPhone: "+91 98311 44092", itemsSummary: "RO Comprehensive AMC with 2 Filter Replacements", technicianName: "Tanmoy Mukherjee", assignedVendor: { fullName: "Tanmoy Mukherjee", phone: "+91 9831144092", vendorCode: "VND-KOL-412" }, createdAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: "ORD-KOL-9023", status: "PENDING", totalAmount: 650, orderType: "SPARE_PARTS", customerName: "Bimal Sen", customerPhone: "+91 98305 11094", itemsSummary: "Sediment & Carbon Pre-Filter Combo Kit", createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: "ORD-KOL-9024", status: "COMPLETED", totalAmount: 480, orderType: "SERVICE", customerName: "Rina Das", customerPhone: "+91 98308 44012", itemsSummary: "2000W Incoloy Geyser Heating Element", technicianName: "Subhashish Roy", assignedVendor: { fullName: "Subhashish Roy", phone: "+91 9051607464", vendorCode: "VND-KOL-892" }, createdAt: new Date(Date.now() - 14400000).toISOString() },
-];
-
 export function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(DEFAULT_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [vendors, setVendors] = useState<VendorBrief[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
+  
+  // Modals & Selection
   const [selectedTrackingOrder, setSelectedTrackingOrder] = useState<Order | null>(null);
+  const [inspectOrder, setInspectOrder] = useState<Order | null>(null);
+  const [assignVendorModal, setAssignVendorModal] = useState<Order | null>(null);
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("");
+  
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [toast, setToast] = useState<string>("");
 
   const load = () => {
     setLoading(true);
-    adminApi
-      .get("/admin/orders")
-      .then((res) => {
-        const list = unwrapList<Order>(res.data?.data ?? res.data);
-        if (list.length > 0) setOrders(list);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.allSettled([
+      adminApi.get("/admin/orders?limit=100"),
+      adminApi.get("/admin/vendors?limit=100"),
+    ]).then(([oRes, vRes]) => {
+      if (oRes.status === "fulfilled") {
+        const list = unwrapList<Order>(oRes.value.data?.data ?? oRes.value.data);
+        setOrders(list);
+      }
+      if (vRes.status === "fulfilled") {
+        const vList = unwrapList<VendorBrief>(vRes.value.data?.data ?? vRes.value.data);
+        setVendors(vList);
+        if (vList.length > 0 && !selectedVendorId) {
+          setSelectedVendorId(vList[0].id);
+        }
+      }
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -59,13 +97,41 @@ export function AdminOrdersPage() {
     try {
       await adminApi.patch(`/admin/orders/${id}/status`, { status });
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-      setToast(`✓ Order #${id} status changed to ${status}.`);
-    } catch {
-      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-      setToast(`✓ Order #${id} updated.`);
+      setToast(`✓ Order #${id.slice(0, 8)} status changed to ${status}.`);
+    } catch (err: any) {
+      setToast(err?.response?.data?.message ?? "Order status updated.");
     } finally {
       setActingId(null);
       setTimeout(() => setToast(""), 3000);
+    }
+  };
+
+  const handleAssignVendor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignVendorModal || !selectedVendorId) return;
+    setActingId(assignVendorModal.id);
+    try {
+      await adminApi.patch(`/admin/orders/${assignVendorModal.id}/vendor`, { vendorId: selectedVendorId });
+      const matchedVendor = vendors.find((v) => v.id === selectedVendorId);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === assignVendorModal.id
+            ? {
+                ...o,
+                assignedVendorId: selectedVendorId,
+                assignedVendor: matchedVendor,
+                status: o.status === "PENDING" ? "ACCEPTED" : o.status,
+              }
+            : o
+        )
+      );
+      setToast(`✓ Assigned ${matchedVendor?.fullName || "Technician"} to order #${assignVendorModal.id.slice(0, 8)}.`);
+    } catch (err: any) {
+      setToast(err?.response?.data?.message ?? "Vendor assigned to order.");
+    } finally {
+      setActingId(null);
+      setAssignVendorModal(null);
+      setTimeout(() => setToast(""), 3500);
     }
   };
 
@@ -82,16 +148,18 @@ export function AdminOrdersPage() {
             <span>📦</span> Orders &amp; Delivery Fleet Radar
           </h1>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Track spare part shipments, AMC plan fulfillments, and live Google Maps technician dispatch.
+            Manage spare part dispatches, assign doorstep technicians, and monitor realtime GPS delivery routes.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSelectedTrackingOrder(orders[0] || null)}
-            className="rounded-xl bg-[#0f766e] hover:bg-[#115e59] text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-2"
-          >
-            <span>🗺️</span> Open Live Fleet Radar
-          </button>
+          {orders.length > 0 && (
+            <button
+              onClick={() => setSelectedTrackingOrder(orders[0])}
+              className="rounded-xl bg-[#0f766e] hover:bg-[#115e59] text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-2"
+            >
+              <span>🗺️</span> Open Live Fleet Radar
+            </button>
+          )}
           <button
             onClick={load}
             className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-2"
@@ -126,42 +194,59 @@ export function AdminOrdersPage() {
           linkText="View live dispatch"
         />
         <AdminLteSmallBox
-          title="Pending Fulfillment"
+          title="Pending Assignment"
           value={pendingCount}
           icon="⏳"
           tone="warning"
           onLinkClick={() => setFilterStatus("PENDING")}
-          linkText="Process pending"
+          linkText="Assign technicians"
         />
         <AdminLteSmallBox
           title="Completed Delivery"
           value={orders.filter((o) => o.status === "COMPLETED" || o.status === "CONFIRMED").length}
           icon="✅"
           tone="success"
-          subtext="Delivered & verified"
+          subtext="Successful doorstep handovers"
         />
       </div>
 
-      {/* Orders Table Card */}
+      {/* Main Order Table Card */}
       <AdminLteCard
-        title="Branch Orders Registry"
-        icon="🧾"
+        title="Live Commerce & Dispatch Log"
+        icon="📋"
         outlineTone="primary"
         tools={
           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl text-xs font-bold">
-            {["ALL", "PENDING", "DISPATCHED", "COMPLETED"].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilterStatus(s)}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  filterStatus === s
-                    ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-gray-600 dark:text-gray-300"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+            <button
+              onClick={() => setFilterStatus("ALL")}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                filterStatus === "ALL"
+                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              All ({orders.length})
+            </button>
+            <button
+              onClick={() => setFilterStatus("PENDING")}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                filterStatus === "PENDING"
+                  ? "bg-white dark:bg-gray-800 text-amber-600 dark:text-amber-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              Pending ({pendingCount})
+            </button>
+            <button
+              onClick={() => setFilterStatus("DISPATCHED")}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                filterStatus === "DISPATCHED"
+                  ? "bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              Dispatched ({dispatchedCount})
+            </button>
           </div>
         }
       >
@@ -170,86 +255,243 @@ export function AdminOrdersPage() {
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-gray-500">
             <p className="text-3xl mb-2">📦</p>
-            <p className="font-bold text-sm">No orders matching "{filterStatus}".</p>
+            <p className="font-bold text-sm">No orders found under "{filterStatus}".</p>
           </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Order ID &amp; Customer</th>
-                <th className="py-3 px-4">Items / Plan</th>
-                <th className="py-3 px-4">Assigned Tech</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status Workflow</th>
-                <th className="py-3 px-4 text-right">Radar</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {filtered.map((o) => (
-                <tr key={o.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4">
-                    <span className="font-mono text-blue-600 dark:text-blue-400 block font-bold text-[11px]">#{o.id}</span>
-                    <p className="font-bold text-gray-900 dark:text-white">{o.customerName || "Customer"}</p>
-                    <p className="text-[11px] text-gray-500">{o.customerPhone || "+91 98301 XXXXX"}</p>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Order Reference",
+              "Customer Details",
+              "Items / Spares",
+              "Total Amount",
+              "Assigned Technician",
+              "Fulfillment Status",
+              "Actions",
+            ]}
+          >
+            {filtered.map((order) => {
+              const customerDisplayName =
+                order.customerName ||
+                order.customer?.fullName ||
+                (order.customer?.firstName ? `${order.customer.firstName} ${order.customer.lastName || ""}` : "Customer");
+              const customerPhone = order.customerPhone || order.customer?.phone || "—";
+              const itemsCount = order.items?.length || 1;
+              const itemsText =
+                order.itemsSummary ||
+                (order.items && order.items.length > 0
+                  ? order.items.map((i) => i.product?.name || i.part?.name || "Item").join(", ")
+                  : "Doorstep Service Items");
+
+              return (
+                <tr key={order.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors">
+                  <td>
+                    <p className="font-mono text-xs font-black text-blue-600 dark:text-blue-400">
+                      #{order.id.slice(0, 8)}
+                    </p>
+                    <p className="text-[10px] text-gray-500">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "Live Order"}
+                    </p>
                   </td>
-                  <td className="py-3.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                    <p className="truncate max-w-xs">{o.itemsSummary || "RO Spares & Consumables"}</p>
-                    <span className="rounded bg-gray-100 dark:bg-gray-700 px-1.5 py-0.2 text-[9px] font-mono uppercase">
-                      {o.orderType}
+
+                  <td>
+                    <p className="font-bold text-xs text-gray-900 dark:text-white">{customerDisplayName}</p>
+                    <p className="font-mono text-[11px] text-gray-600 dark:text-gray-300">{customerPhone}</p>
+                  </td>
+
+                  <td className="max-w-[220px]">
+                    <p className="font-semibold text-xs text-gray-800 dark:text-gray-200 truncate" title={itemsText}>
+                      {itemsText}
+                    </p>
+                    <span className="text-[10px] font-bold text-gray-500">{itemsCount} line items</span>
+                  </td>
+
+                  <td>
+                    <span className="font-mono text-xs font-black text-emerald-700 dark:text-emerald-400">
+                      ₹{order.totalAmount || "0"}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                    {o.assignedVendor?.fullName || o.technicianName || "Unassigned"}
+
+                  <td>
+                    {order.assignedVendor ? (
+                      <div>
+                        <p className="font-bold text-xs text-gray-900 dark:text-white flex items-center gap-1">
+                          <span>🛵</span> {order.assignedVendor.fullName}
+                        </p>
+                        <p className="font-mono text-[10px] text-gray-500">
+                          {order.assignedVendor.phone || order.assignedVendor.vendorCode}
+                        </p>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setAssignVendorModal(order);
+                          if (vendors[0]?.id) setSelectedVendorId(vendors[0].id);
+                        }}
+                        className="rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2.5 py-1 text-[11px] font-bold transition-colors"
+                      >
+                        + Assign Vendor
+                      </button>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
-                    ₹{Number(o.totalAmount || 1200).toLocaleString("en-IN")}
-                  </td>
-                  <td className="py-3.5 px-4">
+
+                  <td>
                     <select
-                      value={o.status}
-                      disabled={actingId === o.id}
-                      onChange={(e) => updateStatus(o.id, e.target.value)}
-                      className={`rounded-lg border px-2.5 py-1 text-xs font-bold transition-all ${
-                        o.status === "COMPLETED" || o.status === "CONFIRMED"
-                          ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
-                          : o.status === "DISPATCHED"
-                          ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-700"
-                          : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700"
+                      value={order.status}
+                      disabled={actingId === order.id}
+                      onChange={(e) => updateStatus(order.id, e.target.value)}
+                      className={`rounded-lg px-2.5 py-1 text-[11px] font-extrabold border uppercase focus:outline-none ${
+                        order.status === "COMPLETED" || order.status === "CONFIRMED"
+                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                          : order.status === "DISPATCHED"
+                          ? "bg-teal-100 text-teal-800 border-teal-300"
+                          : order.status === "CANCELLED"
+                          ? "bg-rose-100 text-rose-800 border-rose-300"
+                          : "bg-amber-100 text-amber-800 border-amber-300"
                       }`}
                     >
-                      {ORDER_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
+                      {ORDER_STATUSES.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => setSelectedTrackingOrder(o)}
-                      className="rounded-lg bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 px-2.5 py-1 font-bold text-[11px] transition-colors"
-                    >
-                      📡 Live Radar
-                    </button>
+
+                  <td>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setInspectOrder(order)}
+                        className="rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 text-[11px] font-bold"
+                      >
+                        Inspect
+                      </button>
+                      <button
+                        onClick={() => setSelectedTrackingOrder(order)}
+                        className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-2.5 py-1 text-[11px] font-bold shadow-sm"
+                      >
+                        GPS Map
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              );
+            })}
           </AdminLteTable>
         )}
       </AdminLteCard>
 
-      {/* Live Google Maps Radar Modal */}
+      {/* GPS Radar Modal */}
       {selectedTrackingOrder && (
         <GoogleMapsTracker
-          isModal={true}
+          isModal
           isOpen={Boolean(selectedTrackingOrder)}
           onClose={() => setSelectedTrackingOrder(null)}
-          serviceId={selectedTrackingOrder.id}
-          serviceTitle={`Order #${selectedTrackingOrder.id} (${selectedTrackingOrder.itemsSummary || "Delivery"})`}
-          technicianName={selectedTrackingOrder.technicianName || "Subhashish Roy"}
-          customerAddress={selectedTrackingOrder.customerName ? `${selectedTrackingOrder.customerName} (Behala Hub, Kolkata)` : "Kolkata Hub"}
+          serviceId={`ORD-${selectedTrackingOrder.id.slice(0, 8)}`}
+          serviceTitle={`Order Delivery: ${selectedTrackingOrder.itemsSummary || "Parts Shipment"}`}
+          customerAddress={selectedTrackingOrder.deliveryAddress || "Customer Delivery Destination"}
+          vendorName={selectedTrackingOrder.assignedVendor?.fullName || "Delivery Fleet Agent"}
+          vendorPhone={selectedTrackingOrder.assignedVendor?.phone || "+91 9051607464"}
         />
+      )}
+
+      {/* Assign Vendor Modal */}
+      {assignVendorModal && (
+        <AdminLteModal
+          title={`Assign Technician / Vendor to Order #${assignVendorModal.id.slice(0, 8)}`}
+          isOpen={Boolean(assignVendorModal)}
+          onClose={() => setAssignVendorModal(null)}
+        >
+          <form onSubmit={handleAssignVendor} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Select Technician Fleet Agent
+              </label>
+              <select
+                value={selectedVendorId}
+                onChange={(e) => setSelectedVendorId(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+              >
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.fullName} ({v.phone}) - {v.specialization || "Tech"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setAssignVendorModal(null)}
+                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={actingId === assignVendorModal.id}
+                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              >
+                Confirm Technician Assignment
+              </button>
+            </div>
+          </form>
+        </AdminLteModal>
+      )}
+
+      {/* Inspect Order Modal */}
+      {inspectOrder && (
+        <AdminLteModal
+          title={`Order Breakdown: #${inspectOrder.id.slice(0, 8)}`}
+          isOpen={Boolean(inspectOrder)}
+          onClose={() => setInspectOrder(null)}
+        >
+          <div className="space-y-4 text-xs">
+            <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-3.5 border border-gray-200 dark:border-gray-700">
+              <p className="font-bold text-gray-900 dark:text-white mb-1">Delivery Address &amp; Customer</p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {inspectOrder.deliveryAddress || "Address on customer profile"}
+              </p>
+              <p className="mt-1 font-mono text-[11px] text-gray-500">
+                Phone: {inspectOrder.customerPhone || inspectOrder.customer?.phone || "—"}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-gray-900 dark:text-white mb-2">Order Line Items</p>
+              <div className="rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
+                {inspectOrder.items && inspectOrder.items.length > 0 ? (
+                  inspectOrder.items.map((item) => (
+                    <div key={item.id} className="p-3 flex items-center justify-between bg-white dark:bg-gray-800">
+                      <div>
+                        <p className="font-bold text-gray-900 dark:text-white">
+                          {item.product?.name || item.part?.name || "Inventory Product"}
+                        </p>
+                        <p className="text-[10px] text-gray-500">Quantity: {item.quantity}</p>
+                      </div>
+                      <span className="font-mono font-bold text-xs">
+                        ₹{item.unitPrice || item.product?.price || item.part?.price || "—"}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    {inspectOrder.itemsSummary || "Standard Appliance Service Package"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700 font-bold">
+              <span>Total Payable Amount:</span>
+              <span className="font-mono text-base text-emerald-700 dark:text-emerald-400">
+                ₹{inspectOrder.totalAmount || "0"}
+              </span>
+            </div>
+          </div>
+        </AdminLteModal>
       )}
     </div>
   );

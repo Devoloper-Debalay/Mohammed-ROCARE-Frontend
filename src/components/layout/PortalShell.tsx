@@ -15,6 +15,7 @@ interface PortalShellProps {
   portalLabel: string;
   userLabel: string;
   userMeta?: string;
+  userBadge?: ReactNode;
   onLogout: () => void;
   children: ReactNode;
 }
@@ -33,7 +34,7 @@ const accentBg: Record<PortalShellProps["accent"], string> = {
   gold: "bg-gold-tint text-gold-deep",
 };
 
-export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta, onLogout, children }: PortalShellProps) {
+export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta, userBadge, onLogout, children }: PortalShellProps) {
   return (
     <div className="flex min-h-screen bg-base transition-colors duration-200">
       <aside className="flex w-64 shrink-0 flex-col border-r border-ink/[0.08] bg-surface px-4 py-6">
@@ -64,7 +65,10 @@ export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta
         </nav>
 
         <div className="mt-auto rounded-xl border border-ink/[0.08] bg-base/50 p-3">
-          <p className="truncate text-sm font-semibold text-ink">{userLabel}</p>
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <p className="truncate text-sm font-semibold text-ink">{userLabel}</p>
+            {userBadge}
+          </div>
           {userMeta && <p className="truncate text-xs text-ink-soft/70">{userMeta}</p>}
           <button
             onClick={onLogout}

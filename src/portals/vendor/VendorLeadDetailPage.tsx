@@ -9,6 +9,8 @@ import { GoogleMapsTracker } from "@/components/tracking/GoogleMapsTracker";
 import { GeoTaggedCamera } from "@/components/camera/GeoTaggedCamera";
 import { DemoQrGenerator } from "@/components/qr/DemoQrGenerator";
 import { vendorApi } from "@/lib/apiClient";
+import { sfx } from "@/lib/soundEffects";
+import { ActionSuccessModal } from "@/components/ui/ActionSuccessModal";
 
 interface Lead {
   id: string;
@@ -51,6 +53,21 @@ export function VendorLeadDetailPage() {
   const [showQrModal, setShowQrModal] = useState(false);
   const [geoCoords, setGeoCoords] = useState<{ latitude?: number; longitude?: number }>({});
 
+  // Modern Animated Success Modal State
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    type: "ACCEPT" | "DENY" | "COMPLETE" | "CREATE";
+    title: string;
+    message: string;
+    leadId?: string;
+    subDetail?: string;
+  }>({
+    isOpen: false,
+    type: "ACCEPT",
+    title: "",
+    message: "",
+  });
+
   const load = () => {
     if (!leadId) return;
     vendorApi
@@ -66,6 +83,15 @@ export function VendorLeadDetailPage() {
     setError("");
     try {
       await vendorApi.post(`/vendor/leads/${leadId}/accept`);
+      sfx.playAccept();
+      setSuccessModal({
+        isOpen: true,
+        type: "ACCEPT",
+        title: "Lead Accepted Successfully! ⚡",
+        message: "50 coins deducted from your balance. Customer contact phone number & live GPS route unlocked.",
+        leadId: leadId ? leadId.slice(0, 8) : undefined,
+        subDetail: `Customer: ${lead?.customerName || "Customer"}`,
+      });
       load();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Couldn't accept — check your wallet balance.");
@@ -90,6 +116,14 @@ export function VendorLeadDetailPage() {
       if (geoCoords.longitude) fd.append("longitude", String(geoCoords.longitude));
       if (proofFile) fd.append("image", proofFile);
       await vendorApi.post(`/vendor/leads/${leadId}/start`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      sfx.playAccept();
+      setSuccessModal({
+        isOpen: true,
+        type: "ACCEPT",
+        title: "Work Started! 🔧",
+        message: "Start geotag proof submitted. You can now service the customer appliance.",
+        leadId: leadId ? leadId.slice(0, 8) : undefined,
+      });
       load();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Couldn't submit start proof.");
@@ -109,6 +143,15 @@ export function VendorLeadDetailPage() {
       fd.append("reason", denyReason);
       if (proofFile) fd.append("image", proofFile);
       await vendorApi.post(`/vendor/leads/${leadId}/deny`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      sfx.playDeny();
+      setSuccessModal({
+        isOpen: true,
+        type: "DENY",
+        title: "Lead Denial Proof Submitted 🚫",
+        message: "Your denial reason and geo-tagged proof have been submitted for admin verification and coin refund processing.",
+        leadId: leadId ? leadId.slice(0, 8) : undefined,
+        subDetail: `Reason: ${denyReason || "Customer unavailable / out of service range"}`,
+      });
       load();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Couldn't submit denial.");
@@ -122,6 +165,15 @@ export function VendorLeadDetailPage() {
     setError("");
     try {
       await vendorApi.post(`/vendor/leads/${leadId}/complete`);
+      sfx.playComplete();
+      setSuccessModal({
+        isOpen: true,
+        type: "COMPLETE",
+        title: "Service Completed Successfully! 🎉",
+        message: "Congratulations! The doorstep appliance service has been marked complete and customer warranty updated.",
+        leadId: leadId ? leadId.slice(0, 8) : undefined,
+        subDetail: "Customer satisfaction score recorded and credited to your technician profile.",
+      });
       load();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Couldn't mark complete.");
@@ -258,7 +310,7 @@ export function VendorLeadDetailPage() {
                   <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft/60">Service Address &amp; Area</p>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-sm font-semibold text-ink">
-                      {lead.address || lead.area || "Area in Kolkata"}
+                      {lead.address || lead.area || "Location masked"}
                     </span>
                     <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                       🔒 Street Masked
@@ -564,6 +616,17 @@ export function VendorLeadDetailPage() {
           </div>
         )}
       </Card>
+
+      {/* Floating Animated Action Success Modal */}
+      <ActionSuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal((prev) => ({ ...prev, isOpen: false }))}
+        type={successModal.type}
+        title={successModal.title}
+        message={successModal.message}
+        leadId={successModal.leadId}
+        subDetail={successModal.subDetail}
+      />
     </div>
   );
 }

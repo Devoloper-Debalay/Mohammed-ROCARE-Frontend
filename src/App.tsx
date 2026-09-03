@@ -13,6 +13,7 @@ import { CustomerOrdersPage } from "@/portals/customer/CustomerOrdersPage";
 import { CustomerServiceRequestsPage } from "@/portals/customer/CustomerServiceRequestsPage";
 import { CustomerComplaintsPage } from "@/portals/customer/CustomerComplaintsPage";
 import { CustomerNotificationsPage } from "@/portals/customer/CustomerNotificationsPage";
+import { CustomerProfilePage } from "@/portals/customer/CustomerProfilePage";
 import { CustomerOffersPage } from "@/portals/customer/CustomerOffersPage";
 
 import { VendorLoginPage } from "@/portals/vendor/VendorLoginPage";
@@ -69,6 +70,7 @@ function CustomerRoutes() {
         <Route path="orders" element={<CustomerOrdersPage />} />
         <Route path="offers" element={<CustomerOffersPage />} />
         <Route path="addresses" element={<CustomerAddressesPage />} />
+        <Route path="profile" element={<CustomerProfilePage />} />
         <Route path="service-requests" element={<CustomerServiceRequestsPage />} />
         <Route path="complaints" element={<CustomerComplaintsPage />} />
         <Route path="notifications" element={<CustomerNotificationsPage />} />

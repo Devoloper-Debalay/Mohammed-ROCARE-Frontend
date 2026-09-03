@@ -49,6 +49,7 @@ export function AdminDashboardPage() {
   const [pendingVendors, setPendingVendors] = useState<PendingVendor[]>([]);
   const [pendingProofs, setPendingProofs] = useState<PendingStartProof[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [vendorsList, setVendorsList] = useState<any[]>([]);
   const [techniciansCount, setTechniciansCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -60,6 +61,13 @@ export function AdminDashboardPage() {
     if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) return path;
     const base = API_BASE_URL.replace(/\/api$/, "");
     return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
+
+  const extractBalance = (v: any): number => {
+    if (v.wallet && typeof v.wallet.balance === "number") return v.wallet.balance;
+    if (typeof v.walletBalance === "number") return v.walletBalance;
+    if (typeof v.balance === "number") return v.balance;
+    return 0;
   };
 
   const load = () => {
@@ -89,6 +97,7 @@ export function AdminDashboardPage() {
       if (vRes.status === "fulfilled") {
         const rawV = vRes.value.data;
         const vList = unwrapList<any>(rawV?.data ?? rawV);
+        setVendorsList(vList);
         const techs = vList.filter((v: any) => v.role === "TECHNICIAN" || !v.role);
         setTechniciansCount(rawV?.pagination?.total ?? techs.length);
       }
@@ -132,10 +141,14 @@ export function AdminDashboardPage() {
 
   const db = report?.dashboard || {};
   const ps = report?.paymentSummary || {};
-  const activeVendors = db.technicians ?? db.activeTechnicians ?? db.activeVendors ?? techniciansCount ?? db.vendors ?? 0;
+  const activeVendors = db.technicians ?? db.activeTechnicians ?? db.activeVendors ?? techniciansCount ?? db.vendors ?? vendorsList.length ?? 0;
   const pendingKYC = report?.pendingVendors ?? pendingVendors.length;
   const pendingGeotags = report?.pendingStartProofs ?? pendingProofs.length;
-  const revenueAmount = Number(ps.totalRevenue ?? db.totalRevenue ?? 489500);
+  const revenueAmount = Number(ps.totalRevenue ?? db.totalRevenue ?? 0);
+
+  // Realtime total coins in technicians' wallets
+  const totalVendorCoins = vendorsList.reduce((acc, curr) => acc + extractBalance(curr), 0);
+  const lowBalanceTechs = vendorsList.filter((v) => extractBalance(v) < 100);
 
   return (
     <div className="space-y-6">
@@ -146,7 +159,7 @@ export function AdminDashboardPage() {
             <span>📊</span> Branch Operations Command Center
           </h1>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Real-time technician tracking, live GPS geotags, KYC validation queue, and order fulfillment.
+            Real-time technician tracking, live GPS geotags, technician wallet coin pool, and KYC queue.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -182,12 +195,12 @@ export function AdminDashboardPage() {
           linkText="Manage technician fleet"
         />
         <AdminLteSmallBox
-          title="Pending KYC Reviews"
-          value={pendingKYC}
-          icon="🪪"
+          title="Technician Wallet Coins"
+          value={`${totalVendorCoins.toLocaleString()} Coins`}
+          icon="🪙"
           tone="warning"
-          linkTo="/staff/vendors"
-          linkText="Inspect uploaded KYC"
+          linkTo="/staff/wallet"
+          linkText="Manage technician balances"
         />
         <AdminLteSmallBox
           title="GPS Geotag Start Proofs"
@@ -207,31 +220,31 @@ export function AdminDashboardPage() {
         />
       </div>
 
-      {/* Info Boxes row for Operational Metrics */}
+      {/* Realtime Wallet Telemetry Section */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <AdminLteInfoBox
-          title="Total Service Leads"
-          value={db.totalLeads ?? 142}
-          icon="🎯"
-          tone="primary"
-          progress={db.totalLeads ? Math.round(((db.completedLeads ?? 90) / db.totalLeads) * 100) : 85}
-          description={`${db.completedLeads ?? 90} completed · ${db.activeLeads ?? 24} active on field`}
+          title="Total Circulating Coins in Wallets"
+          value={`${totalVendorCoins} Coins`}
+          icon="💰"
+          tone="warning"
+          progress={totalVendorCoins > 0 ? 100 : 0}
+          description="Live sum across all active field technicians"
+        />
+        <AdminLteInfoBox
+          title="Low Balance Technicians"
+          value={`${lowBalanceTechs.length} Alert`}
+          icon="⚠️"
+          tone={lowBalanceTechs.length > 0 ? "danger" : "primary"}
+          progress={lowBalanceTechs.length > 0 ? 30 : 100}
+          description={lowBalanceTechs.length > 0 ? `${lowBalanceTechs.length} techs need recharge for dispatches` : "All technicians have sufficient lead coins"}
         />
         <AdminLteInfoBox
           title="Orders & Parts Dispatch"
-          value={db.totalOrders ?? recentOrders.length ?? 38}
+          value={db.totalOrders ?? recentOrders.length ?? 0}
           icon="📦"
           tone="teal"
-          progress={88}
+          progress={db.totalOrders ? 100 : 0}
           description="Genuine RO membranes, compressors & AMC kits"
-        />
-        <AdminLteInfoBox
-          title="Blocked Technicians"
-          value={`${report?.blockedVendors ?? 0} Suspended`}
-          icon="🚫"
-          tone="danger"
-          progress={10}
-          description="Quality audit and SLA compliance enforcement"
         />
       </div>
 

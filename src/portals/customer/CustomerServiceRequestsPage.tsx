@@ -52,16 +52,54 @@ const DEFAULT_INDIAN_SERVICES: Service[] = [
   { id: "srv-geyser-3", name: "Geyser Thermostat & Pressure Valve Overhaul", category: "GEYSER", price: "450", description: "Safety cutoff valve inspection and temperature sensor calibration." },
 ];
 
-const stageOf: Record<string, number> = {
-  REQUESTED: 0,
-  NEW: 0,
-  ASSIGNED: 1,
-  ACCEPTED: 1,
-  IN_PROGRESS: 2,
-  ONGOING: 2,
-  COMPLETED: 3,
-};
 const stages = ["Requested", "Assigned", "In progress", "Completed"];
+
+const getStatusTheme = (status: string) => {
+  const norm = (status || "").toUpperCase();
+  if (norm === "COMPLETED" || norm === "DELIVERED" || norm === "RESOLVED") {
+    return {
+      label: "COMPLETED",
+      badgeClass: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40",
+      accent: "#10b981", // Emerald 500
+      activeIndex: 3,
+      isDenied: false,
+    };
+  }
+  if (norm === "ONGOING" || norm === "IN_PROGRESS") {
+    return {
+      label: norm.replace(/_/g, " "),
+      badgeClass: "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40",
+      accent: "#f59e0b", // Amber 500
+      activeIndex: 2,
+      isDenied: false,
+    };
+  }
+  if (norm === "ACCEPTED" || norm === "ASSIGNED") {
+    return {
+      label: norm.replace(/_/g, " "),
+      badgeClass: "bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/40",
+      accent: "#0ea5e9", // Sky 500
+      activeIndex: 1,
+      isDenied: false,
+    };
+  }
+  if (norm === "DENIED" || norm === "CANCELLED" || norm === "REJECTED") {
+    return {
+      label: norm.replace(/_/g, " "),
+      badgeClass: "bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/40",
+      accent: "#f43f5e", // Rose 500
+      activeIndex: 0,
+      isDenied: true,
+    };
+  }
+  return {
+    label: norm.replace(/_/g, " ") || "REQUESTED",
+    badgeClass: "bg-teal-500/20 text-teal-700 dark:text-teal-400 border border-teal-500/40",
+    accent: "#0d9488", // Teal 600
+    activeIndex: 0,
+    isDenied: false,
+  };
+};
 
 export function CustomerServiceRequestsPage() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -79,10 +117,15 @@ export function CustomerServiceRequestsPage() {
     setLoading(true);
     Promise.allSettled([
       customerApi.get("/customer/service-request"),
+      customerApi.get("/customer/service-requests"),
       customerApi.get("/customer/addresses"),
       customerApi.get("/catalog/service"),
-    ]).then(([r, a, s]) => {
-      if (r.status === "fulfilled") setRequests(unwrapList<ServiceRequest>(r.value.data?.data ?? r.value.data));
+    ]).then(([r1, r2, a, s]) => {
+      let reqList: ServiceRequest[] = [];
+      if (r1.status === "fulfilled") reqList = unwrapList<ServiceRequest>(r1.value.data?.data ?? r1.value.data);
+      if (reqList.length === 0 && r2.status === "fulfilled") reqList = unwrapList<ServiceRequest>(r2.value.data?.data ?? r2.value.data);
+      setRequests(reqList);
+
       if (a.status === "fulfilled") setAddresses(unwrapList<Address>(a.value.data?.data ?? a.value.data));
       if (s.status === "fulfilled") {
         const sList = unwrapList<Service>(s.value.data?.data ?? s.value.data);
@@ -121,31 +164,32 @@ export function CustomerServiceRequestsPage() {
   const selectedService = services.find((s) => s.id === form.serviceId);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Doorstep Care"
-        title="Appliance Service Requests"
-        description="Book on-site repair and maintenance for RO Purifiers, ACs, Refrigerators, and Geysers with Google Maps live technician tracking."
+        eyebrow="Doorstep Appliance Maintenance"
+        title="Service Requests &amp; Live Tracking"
+        description="Book on-demand RO filter swap, AC servicing, Geyser repair, and track your technician with GPS updates."
         action={
-          <Button accent="teal" onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "+ Book a Service Visit"}
+          <Button accent="teal" onClick={() => setShowForm((v) => !v)} className="font-bold shadow-md">
+            {showForm ? "✕ Cancel Form" : "+ Raise Service Request"}
           </Button>
         }
       />
 
-      {/* Live Google Maps Tracker Modal when active */}
+      {/* Google Maps Tracking Modal */}
       {trackingRequest && (
         <GoogleMapsTracker
           isModal
           isOpen={Boolean(trackingRequest)}
           onClose={() => setTrackingRequest(null)}
-          serviceId={trackingRequest.id.slice(0, 10)}
-          serviceTitle={trackingRequest.service?.name ?? "Appliance Service"}
-          initialStage={trackingRequest.status}
+          serviceId={trackingRequest.id}
+          serviceTitle={trackingRequest.service?.name || "Doorstep Appliance Service"}
+          vendorName="Verified ROCARE Technician"
+          vendorPhone="+91 90516 07464"
         />
       )}
 
-      {/* Demo QR Generator Modal */}
+      {/* Floating QR Modal */}
       {qrRequest && (
         <DemoQrGenerator
           isModal
@@ -173,17 +217,11 @@ export function CustomerServiceRequestsPage() {
                 <option value="" disabled>
                   Select service package...
                 </option>
-                {[
-                  { key: "RO", label: "💧 RO Water Purifier Services" },
-                  { key: "AC", label: "❄️ Air Conditioner (AC) Services" },
-                  { key: "FRIDGE", label: "🧊 Refrigerator (Fridge) Services" },
-                  { key: "GEYSER", label: "🔥 Water Heater (Geyser) Services" },
-                  { key: "OTHER", label: "⚙️ General Appliance Repair" },
-                ].map((cat) => {
-                  const inCat = services.filter((s) => s.category?.toUpperCase() === cat.key);
+                {Array.from(new Set(services.map((s) => s.category || "General Appliance Services"))).map((catName) => {
+                  const inCat = services.filter((s) => (s.category || "General Appliance Services") === catName);
                   if (inCat.length === 0) return null;
                   return (
-                    <optgroup key={cat.key} label={cat.label} className="font-bold text-gray-900 dark:text-white">
+                    <optgroup key={catName} label={catName} className="font-bold text-gray-900 dark:text-white">
                       {inCat.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name} — ₹{s.price}
@@ -240,71 +278,56 @@ export function CustomerServiceRequestsPage() {
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
             Book a service above to get a certified ROCARE India technician dispatched with live Google Maps tracking.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button
-              accent="teal"
-              variant="secondary"
-              onClick={() =>
-                setTrackingRequest({
-                  id: "DEMO-SR-08114",
-                  status: "IN_PROGRESS",
-                  createdAt: new Date().toISOString(),
-                  service: { name: "RO Membrane Replacement & Multi-Stage TDS Calibration", category: "RO" },
-                })
-              }
-            >
-              🗺️ Google Maps Live Tracking Demo
-            </Button>
-            <Button
-              accent="teal"
-              variant="secondary"
-              onClick={() =>
-                setQrRequest({
-                  id: "DEMO-SR-08114",
-                  status: "IN_PROGRESS",
-                  createdAt: new Date().toISOString(),
-                  service: { name: "RO Membrane Replacement & Multi-Stage TDS Calibration", category: "RO" },
-                })
-              }
-            >
-              📱 View Demo QR Pass
-            </Button>
-          </div>
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          {requests.map((r) => (
-            <Card key={r.id} className="p-5 hover:shadow-lg transition-all border border-gray-200 dark:border-gray-800">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-bold text-base text-gray-900 dark:text-white">{r.service?.name ?? "Appliance Service Request"}</p>
-                  <p className="font-mono text-xs font-semibold text-gray-500">#{r.id.slice(0, 8)}</p>
+          {requests.map((r) => {
+            const theme = getStatusTheme(r.status);
+            return (
+              <Card key={r.id} className="p-5 hover:shadow-lg transition-all border border-gray-200 dark:border-gray-800">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-base text-gray-900 dark:text-white">{r.service?.name ?? "Appliance Service Request"}</p>
+                    <p className="font-mono text-xs font-semibold text-gray-500">#{r.id.slice(0, 8)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${theme.badgeClass}`}>
+                      {theme.label}
+                    </span>
+                    <Button
+                      accent="teal"
+                      variant="secondary"
+                      className={`!py-1.5 !px-3 !text-xs font-bold ${theme.isDenied ? "opacity-35 cursor-not-allowed" : ""}`}
+                      disabled={theme.isDenied}
+                      onClick={() => setQrRequest(r)}
+                    >
+                      📱 QR Pass
+                    </Button>
+                    <Button
+                      accent="teal"
+                      className={`!py-1.5 !px-3.5 !text-xs font-bold shadow-sm ${theme.isDenied ? "opacity-35 cursor-not-allowed" : ""}`}
+                      disabled={theme.isDenied}
+                      onClick={() => setTrackingRequest(r)}
+                    >
+                      🗺️ Google Maps Track
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge tone="teal">{r.status.replace(/_/g, " ")}</Badge>
-                  <Button
-                    accent="teal"
-                    variant="secondary"
-                    className="!py-1.5 !px-3 !text-xs font-bold"
-                    onClick={() => setQrRequest(r)}
-                  >
-                    📱 QR Pass
-                  </Button>
-                  <Button
-                    accent="teal"
-                    className="!py-1.5 !px-3.5 !text-xs font-bold shadow-sm"
-                    onClick={() => setTrackingRequest(r)}
-                  >
-                    🗺️ Google Maps Track
-                  </Button>
+                {r.notes && <p className="mt-2 text-xs font-medium text-gray-700 dark:text-gray-300">Notes: {r.notes}</p>}
+                
+                {/* Dynamic Status Stage Bar */}
+                <div className="mt-4">
+                  {theme.isDenied ? (
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300 font-bold">
+                      <span>🚫</span> Service Request Denied / Cancelled by Technician
+                    </div>
+                  ) : (
+                    <StageBar stages={stages} activeIndex={theme.activeIndex} accent={theme.accent} />
+                  )}
                 </div>
-              </div>
-              {r.notes && <p className="mt-2 text-xs font-medium text-gray-700 dark:text-gray-300">Notes: {r.notes}</p>}
-              <div className="mt-4">
-                <StageBar stages={stages} activeIndex={stageOf[r.status] ?? 0} accent="var(--color-teal)" />
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

@@ -140,15 +140,15 @@ export function AdminPaymentsPage() {
         icon="🧾"
         outlineTone="primary"
         tools={
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl text-xs font-bold">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1e293b] p-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-inner">
             {(["ALL", "PENDING", "PAID", "REJECTED"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
                 className={`px-3 py-1 rounded-lg transition-all ${
                   filterStatus === s
-                    ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                    ? "bg-white dark:bg-[#0f172a] text-blue-600 dark:text-blue-400 font-black shadow-sm border border-slate-200 dark:border-slate-600"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {s}
@@ -165,79 +165,78 @@ export function AdminPaymentsPage() {
             <p className="font-bold text-sm">No payment records found under "{filterStatus}".</p>
           </div>
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Transaction ID</th>
-                <th className="py-3 px-4">Customer / Vendor</th>
-                <th className="py-3 px-4">Method &amp; Ref</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Timestamp</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Transaction ID",
+              "Customer / Vendor",
+              "Method & Ref",
+              "Amount",
+              "Status",
+              "Timestamp",
+              "Actions",
+            ]}
+          >
+            {filtered.map((p) => (
+              <tr key={p.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                  #{p.id}
+                </td>
+                <td className="py-3.5 px-4">
+                  <p className="font-bold text-xs text-gray-900 dark:text-white">{p.customerName || "Customer"}</p>
+                  <p className="text-[11px] text-gray-500">{p.customerPhone || "Phone not shared"}</p>
+                </td>
+                <td className="py-3.5 px-4">
+                  <span className="font-bold text-xs text-gray-900 dark:text-white">{p.method}</span>
+                  {p.referenceId && <p className="font-mono text-[11px] text-gray-500">Ref: {p.referenceId}</p>}
+                </td>
+                <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
+                  ₹{Number(p.amount).toLocaleString("en-IN")}
+                </td>
+                <td className="py-3.5 px-4">
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                      p.status === "PAID"
+                        ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
+                        : p.status === "PENDING"
+                        ? "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
+                        : "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-gray-500 font-mono text-[11px]">
+                  {new Date(p.createdAt).toLocaleString()}
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  {p.status === "PENDING" ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => handleReview(p.id, true)}
+                        disabled={actingId === p.id}
+                        className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 font-bold text-[11px] shadow-sm transition-colors"
+                      >
+                        ✓ Confirm
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReviewModal(p);
+                          setRejectionReason("");
+                        }}
+                        disabled={actingId === p.id}
+                        className="rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 hover:bg-rose-200 px-2.5 py-1 font-bold text-[11px] transition-colors"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] font-bold text-gray-500">Verified</span>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    #{p.id}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-bold text-gray-900 dark:text-white">{p.customerName || "Customer"}</p>
-                    <p className="text-[11px] text-gray-500">{p.customerPhone || "Phone not shared"}</p>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="font-bold">{p.method}</span>
-                    {p.referenceId && <p className="font-mono text-[11px] text-gray-500">Ref: {p.referenceId}</p>}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
-                    ₹{Number(p.amount).toLocaleString("en-IN")}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                        p.status === "PAID"
-                          ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
-                          : p.status === "PENDING"
-                          ? "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
-                          : "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-gray-500 font-mono text-[11px]">
-                    {new Date(p.createdAt).toLocaleString()}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    {p.status === "PENDING" ? (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleReview(p.id, true)}
-                          disabled={actingId === p.id}
-                          className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 font-bold text-[11px] shadow-sm transition-colors"
-                        >
-                          ✓ Confirm
-                        </button>
-                        <button
-                          onClick={() => {
-                            setReviewModal(p);
-                            setRejectionReason("");
-                          }}
-                          disabled={actingId === p.id}
-                          className="rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 hover:bg-rose-200 px-2.5 py-1 font-bold text-[11px] transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-[11px] font-bold text-gray-500">Verified</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>

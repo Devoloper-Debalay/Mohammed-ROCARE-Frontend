@@ -149,42 +149,41 @@ export function SuperAdminSettingsPage() {
         {loading ? (
           <div className="h-36 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
         ) : (
-          <AdminLteTable>
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">
-                <th className="py-3 px-4">Parameter Key</th>
-                <th className="py-3 px-4">Configured Value</th>
-                <th className="py-3 px-4">Description &amp; Operational Impact</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+          <AdminLteTable
+            striped
+            hover
+            headers={[
+              "Parameter Key",
+              "Configured Value",
+              "Description & Operational Impact",
+              "Actions",
+            ]}
+          >
+            {settings.map((s) => (
+              <tr key={s.key} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20 transition-colors">
+                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                  {s.key}
+                </td>
+                <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
+                  {String(s.value)}
+                </td>
+                <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
+                  {s.description || "System runtime constant"}
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(s);
+                      setEditValue(String(s.value));
+                      setEditDesc(s.description || "");
+                    }}
+                    className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors"
+                  >
+                    ✏️ Edit Value
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200">
-              {settings.map((s) => (
-                <tr key={s.key} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {s.key}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono font-extrabold text-sm text-emerald-700 dark:text-emerald-400">
-                    {String(s.value)}
-                  </td>
-                  <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
-                    {s.description || "System runtime constant"}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => {
-                        setShowEditModal(s);
-                        setEditValue(String(s.value));
-                        setEditDesc(s.description || "");
-                      }}
-                      className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors"
-                    >
-                      ✏️ Edit Value
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
           </AdminLteTable>
         )}
       </AdminLteCard>
