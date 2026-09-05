@@ -437,7 +437,7 @@ export function StaffPortalLayout() {
       {/* =========================================================================
           AdminLTE 4 Main Content Area
           ========================================================================= */}
-      <div className={`flex min-h-screen flex-1 flex-col transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : "lg:pl-20"}`}>
+      <div className={`flex min-h-screen flex-1 flex-col min-w-0 max-w-full overflow-x-hidden transition-all duration-300 ${sidebarOpen ? "lg:pl-64" : "lg:pl-20"}`}>
         
         {/* Top Navbar */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 shadow-sm">
@@ -563,7 +563,7 @@ export function StaffPortalLayout() {
         </div>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 sm:p-8">
+        <main className="flex-1 p-4 sm:p-8 min-w-0 max-w-full overflow-x-hidden">
           <Outlet />
         </main>
 

@@ -296,7 +296,7 @@ export function CustomerOrdersPage() {
             No orders found in this section
           </h3>
           <p className="mt-1 text-xs text-gray-500">
-            When you purchase appliances or spare parts, they will appear here with live tracking.
+            When you purchase appliances, they will appear here with live tracking.
           </p>
           <Button accent="teal" className="mt-5 font-bold text-xs" onClick={() => navigate("/customer/catalog")}>
             Browse Store

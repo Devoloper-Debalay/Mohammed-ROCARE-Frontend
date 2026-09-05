@@ -165,9 +165,9 @@ export function AdminLteCard({
   }[outlineTone];
 
   return (
-    <div className={`rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden ${outlineClasses} ${className}`}>
+    <div className={`w-full min-w-0 max-w-full rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden ${outlineClasses} ${className}`}>
       {(title || tools || badge) && (
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/50">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/50">
           <div className="flex items-center gap-2">
             {icon && <span className="text-lg">{icon}</span>}
             {title && <h3 className="font-display text-base font-bold text-gray-900 dark:text-white">{title}</h3>}
@@ -187,10 +187,10 @@ export function AdminLteCard({
               </span>
             )}
           </div>
-          {tools && <div className="flex items-center gap-2">{tools}</div>}
+          {tools && <div className="flex flex-wrap items-center gap-2 overflow-x-auto max-w-full">{tools}</div>}
         </div>
       )}
-      <div className={`p-5 ${bodyClassName}`}>{children}</div>
+      <div className={`p-5 w-full min-w-0 max-w-full overflow-hidden ${bodyClassName}`}>{children}</div>
       {footer && (
         <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 px-5 py-3 text-xs">
           {footer}
@@ -219,13 +219,13 @@ export function AdminLteTable({
   className = "",
 }: AdminLteTableProps) {
   return (
-    <div className={`overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`overflow-x-auto w-full min-w-0 max-w-full rounded-xl border border-gray-200 dark:border-gray-700 scrollbar-thin ${className}`}>
       <table className="w-full text-left text-xs border-collapse">
         {headers && headers.length > 0 && (
           <thead>
             <tr className="bg-slate-100 dark:bg-[#1e293b] text-slate-750 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 font-bold uppercase tracking-wider text-[11px]">
               {headers.map((h, i) => (
-                <th key={i} className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                <th key={i} className="px-4 py-3 text-slate-700 dark:text-slate-200 whitespace-nowrap">
                   {h}
                 </th>
               ))}

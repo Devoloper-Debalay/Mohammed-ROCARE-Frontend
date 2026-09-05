@@ -391,7 +391,7 @@ export function CustomerCartPage() {
             Your shopping cart is empty
           </h3>
           <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-            Browse our wide selection of certified Water Purifiers, Inverter ACs, and Genuine Spare Parts.
+            Browse our wide selection of certified Water Purifiers, Inverter ACs, and Home Appliances.
           </p>
           <Button
             accent="teal"

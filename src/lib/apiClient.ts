@@ -115,12 +115,19 @@ export function unwrapList<T = any>(payload: unknown): T[] {
   if (obj.data && typeof obj.data === "object") {
     if (Array.isArray(obj.data.data)) return obj.data.data as T[];
     if (Array.isArray(obj.data.items)) return obj.data.items as T[];
+    if (Array.isArray(obj.data.categories)) return obj.data.categories as T[];
     if (Array.isArray(obj.data.rows)) return obj.data.rows as T[];
+    if (Array.isArray(obj.data.result)) return obj.data.result as T[];
+    if (Array.isArray(obj.data.products)) return obj.data.products as T[];
+    if (Array.isArray(obj.data.services)) return obj.data.services as T[];
+    if (Array.isArray(obj.data.parts)) return obj.data.parts as T[];
     if (Array.isArray(obj.data.logs)) return obj.data.logs as T[];
     if (Array.isArray(obj.data.transactions)) return obj.data.transactions as T[];
   }
   if (Array.isArray(obj.items)) return obj.items as T[];
+  if (Array.isArray(obj.categories)) return obj.categories as T[];
   if (Array.isArray(obj.rows)) return obj.rows as T[];
+  if (Array.isArray(obj.result)) return obj.result as T[];
   if (Array.isArray(obj.logs)) return obj.logs as T[];
   if (Array.isArray(obj.transactions)) return obj.transactions as T[];
   if (Array.isArray(obj.branches)) return obj.branches as T[];

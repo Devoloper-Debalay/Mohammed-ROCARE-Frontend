@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { customerApi } from "@/lib/apiClient";
+import { API_BASE_URL } from "@/lib/env";
 
 export interface ProductItem {
   id: string;
   name: string;
   category: string;
+  categoryId?: string;
+  categoryObj?: { id: string; name: string; icon?: string; type?: string };
   description?: string;
   price: string | number;
   originalPrice?: string | number;
@@ -18,6 +21,13 @@ export interface ProductItem {
   rating?: number;
   reviewCount?: number;
 }
+
+const getMediaUrl = (path?: string) => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("blob:")) return path;
+  const base = API_BASE_URL.replace(/\/api$/, "");
+  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+};
 
 interface ProductDetailModalProps {
   product: ProductItem | null;
@@ -67,7 +77,8 @@ export function ProductDetailModal({
     "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80",
   ];
 
-  const images = product.images && product.images.length > 0 ? product.images : defaultImages;
+  const rawImages = product.images && product.images.length > 0 ? product.images : defaultImages;
+  const images = rawImages.map(getMediaUrl);
 
   const defaultFeatures = [
     "100% Genuine OEM Certified Component with holographic QR seal",

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Interactive3DShowcase } from "@/components/3d/Interactive3DShowcase";
 import { ProductDetailModal, type ProductItem } from "./components/ProductDetailModal";
 import { customerApi, unwrapList } from "@/lib/apiClient";
+import { extractImages } from "@/portals/admin/AdminCatalogPage";
+import { API_BASE_URL } from "@/lib/env";
 import { useCustomerAuth } from "@/store/authStore";
 
 const HERO_CAROUSEL_SLIDES = [
@@ -29,46 +31,12 @@ const HERO_CAROUSEL_SLIDES = [
   },
   {
     id: 3,
-    badge: "🛠️ 100% GENUINE SPARE PARTS",
-    title: "Certified OEM Replacement Cartridges",
-    subtitle: "High TDS 0.0001µm Filmtec Membranes, Incoloy Heating Coils & Universal Remotes",
-    gradient: "from-emerald-900 via-teal-800 to-slate-900",
-    buttonText: "Browse Spare Parts",
-    category: "PARTS",
-  },
-];
-
-const CATEGORY_ITEMS = [
-  { id: "ALL", label: "All Items", icon: "🏬" },
-  { id: "RO", label: "RO Purifiers", icon: "💧" },
-  { id: "AC", label: "Split ACs", icon: "❄️" },
-  { id: "FRIDGE", label: "Refrigerators", icon: "🧊" },
-  { id: "GEYSER", label: "Water Heaters", icon: "🔥" },
-  { id: "PARTS", label: "Genuine Spares", icon: "⚙️" },
-];
-
-const MULTI_IMAGE_OFFERS = [
-  {
-    title: "Top Rated Pure Water Tech",
-    tag: "Up to 50% Off",
-    category: "RO",
-    items: [
-      { name: "Copper RO 10L", discount: "40% off", img: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=300&q=80" },
-      { name: "UV+UF Purifier", discount: "35% off", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80" },
-      { name: "Filmtec Membrane", discount: "50% off", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=300&q=80" },
-      { name: "Mineral Booster", discount: "25% off", img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=300&q=80" },
-    ],
-  },
-  {
-    title: "Keep Your Home Cool & Fresh",
-    tag: "Save Big",
-    category: "AC",
-    items: [
-      { name: "1.5T Dual-Inverter", discount: "30% off", img: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80" },
-      { name: "Smart AC Remote", discount: "45% off", img: "https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=300&q=80" },
-      { name: "Coil Cleaner Foam", discount: "20% off", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=300&q=80" },
-      { name: "Copper Pipe Kit", discount: "15% off", img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80" },
-    ],
+    badge: "✨ SMART KITCHEN & HOME",
+    title: "Auto-Clean Filterless Kitchen Chimneys",
+    subtitle: "High suction 1400 m³/hr with motion sensor touch control and thermal auto-clean technology",
+    gradient: "from-amber-900 via-stone-800 to-slate-900",
+    buttonText: "Explore Appliances",
+    category: "ALL",
   },
 ];
 
@@ -187,62 +155,125 @@ const DEFAULT_INDIAN_APPLIANCES: ProductItem[] = [
     },
   },
   {
-    id: "ro-part-102",
-    name: "Original 0.0001µm Filmtec RO Membrane Cartridge",
-    category: "PARTS",
-    description: "Certified high TDS reduction membrane (up to 2500 ppm). Fits all standard 75/80/100 GPD domestic RO housings.",
-    price: 1850,
-    originalPrice: 2800,
-    discountPercent: 34,
-    stock: 40,
-    rating: 4.9,
-    reviewCount: 512,
+    id: "chimney-501",
+    name: "AeroClean 90cm Auto-Clean Filterless Chimney",
+    category: "CHIMNEY",
+    description: "Smart motion sensor touch control, 1400 m3/hr suction power with thermal auto-cleaning and stainless steel oil collector.",
+    price: 13990,
+    originalPrice: 24990,
+    discountPercent: 44,
+    stock: 9,
+    rating: 4.7,
+    reviewCount: 115,
     images: [
       "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=800&q=80",
     ],
     features: [
-      "0.0001 Micron pore size eliminates micro-plastics and heavy metals",
-      "NSF-58 certified high recovery composite polyamide sheet",
-      "Direct OEM plug & play replacement with leak-proof double O-ring",
+      "Motion Sensor gesture control for hand-free power & speed toggling",
+      "1400 m3/hr super heavy suction to handle heavy Indian deep frying",
+      "Heat Auto-Clean with sealed oil collector cup",
+      "Super quiet noise operation below 58dB",
     ],
     specs: {
-      Flow: "80 Gallons Per Day (GPD)",
-      Rejection: "97.5% Salt Reduction",
-      Origin: "ROCARE OEM Genuine",
-    },
-  },
-  {
-    id: "ac-part-202",
-    name: "Universal Smart AC Remote Control with LCD",
-    category: "PARTS",
-    description: "Compatible with all leading Indian inverter split AC brands. Pre-programmed with 1000+ codes and glow-in-the-dark night buttons.",
-    price: 650,
-    originalPrice: 1200,
-    discountPercent: 46,
-    stock: 50,
-    rating: 4.6,
-    reviewCount: 140,
-    images: [
-      "https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=800&q=80",
-    ],
-    features: [
-      "Auto-search 1-click brand synchronization",
-      "Backlit LCD display for temperature and timer settings",
-      "Built-in temperature sensor and turbo cool shortcut key",
-    ],
-    specs: {
-      Range: "Up to 10 Meters Line-of-sight",
-      Batteries: "2x AAA Included",
-      Compatibility: "Universal Split & Window ACs",
+      Size: "90 cm (Ideal for 3-5 burner stoves)",
+      Suction: "1400 m3/hr Airflow",
+      Control: "Wave Gesture & Touch Sensor",
+      Warranty: "2 Years Product + 5 Years Motor",
     },
   },
 ];
+
+const ICON_EMOJI_MAP: Record<string, string> = {
+  droplets: "💧",
+  droplet: "💧",
+  water: "💧",
+  wind: "💨",
+  airvent: "💨",
+  fan: "🌀",
+  refrigerator: "🧊",
+  fridge: "🧊",
+  flame: "🔥",
+  sun: "☀️",
+  zap: "⚡",
+  shieldcheck: "🛡️",
+  shield: "🛡️",
+  layers: "🥞",
+  laptop: "💻",
+  computer: "💻",
+  smartphone: "📱",
+  phone: "📱",
+  tv: "📺",
+  television: "📺",
+  microwave: "📻",
+  chimney: "🏠",
+  washingmachine: "🧺",
+  sparkles: "✨",
+  box: "📦",
+  package: "📦",
+  store: "🏬",
+  cart: "🛒",
+};
+
+export const resolveCategoryEmoji = (iconStr?: string, fallback = "📦"): string => {
+  if (!iconStr) return fallback;
+  const trimmed = iconStr.trim();
+  // Check if already an emoji
+  if (/\p{Extended_Pictographic}/u.test(trimmed)) {
+    return trimmed;
+  }
+  const cleanKey = trimmed.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return ICON_EMOJI_MAP[cleanKey] || fallback;
+};
+
+const isPartText = (text?: string): boolean => {
+  if (!text) return false;
+  const s = text.toUpperCase();
+  return (
+    s === "PARTS" ||
+    s === "PART" ||
+    s.includes("SPARE") ||
+    s.includes("FILTER") ||
+    s.includes("MEMBRANE") ||
+    s.includes("CARTRIDGE") ||
+    s.includes("VALVE") ||
+    s.includes("TOOL") ||
+    s.includes("WRENCH")
+  );
+};
+
+const isPartItem = (p: any): boolean => {
+  if (!p) return false;
+  if (p.isPart === true || p.type === "PART") return true;
+  const cat = (p.category || "").toUpperCase();
+  if (isPartText(cat)) return true;
+  if (p.categoryId && isPartText(p.categoryId)) return true;
+  return false;
+};
+
+const getMediaUrl = (path?: string) => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("blob:")) return path;
+  const base = API_BASE_URL.replace(/\/api$/, "");
+  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+};
+
+export interface DynamicCategory {
+  id: string;
+  name: string;
+  type?: "PRODUCT" | "SERVICE";
+  icon?: string;
+  image?: string;
+  description?: string;
+  isActive?: boolean;
+}
 
 export function CustomerCatalogPage() {
   const navigate = useNavigate();
   const user = useCustomerAuth((s) => s.user);
 
   const [products, setProducts] = useState<ProductItem[]>([]);
+  const [dynamicCategories, setDynamicCategories] = useState<DynamicCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"featured" | "price-low" | "price-high" | "rating">("featured");
@@ -255,7 +286,7 @@ export function CustomerCatalogPage() {
   const [show3DModal, setShow3DModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
 
-  // Countdown timer for Deal of the Day (Flutterzone concept)
+  // Countdown timer for Deal of the Day
   const [dealTimeLeft, setDealTimeLeft] = useState({ hours: 7, minutes: 24, seconds: 15 });
 
   useEffect(() => {
@@ -278,23 +309,91 @@ export function CustomerCatalogPage() {
     return () => clearInterval(slideInterval);
   }, []);
 
-  // Fetch products from backend
+  // Normalize product item from API
+  const normalizeItem = (raw: any, defaultCat = "RO"): ProductItem => {
+    const rawImages = extractImages(raw);
+    const images: string[] = rawImages.map((img: string) => getMediaUrl(img)).filter(Boolean);
+
+    const priceNum = typeof raw.price === "number" ? raw.price : parseFloat(String(raw.price || 0).replace(/,/g, "")) || 0;
+    const discount = raw.discountPercent !== undefined ? Number(raw.discountPercent) : 0;
+    const originalPrice = raw.originalPrice ? Number(raw.originalPrice) : discount > 0 ? Math.round(priceNum / (1 - discount / 100)) : Math.round(priceNum * 1.35);
+
+    return {
+      id: raw.id || raw._id || `item-${Date.now()}`,
+      name: raw.name || "Appliance Item",
+      category: raw.category || defaultCat,
+      categoryId: raw.categoryId || undefined,
+      categoryObj: raw.categoryObj || raw.categoryRef || undefined,
+      description: raw.description || "",
+      price: priceNum,
+      originalPrice,
+      discountPercent: discount || Math.round(((originalPrice - priceNum) / originalPrice) * 100),
+      stock: raw.stock !== undefined ? Number(raw.stock) : 10,
+      images: images.length > 0 ? images : undefined,
+      features: Array.isArray(raw.features) && raw.features.length > 0 ? raw.features : undefined,
+      specs: raw.specs || undefined,
+      rating: raw.rating || 4.8,
+      reviewCount: raw.reviewCount || 120,
+    };
+  };
+
+  // Fetch real appliances & categories from backend (STRICTLY NO PARTS)
   const load = () => {
     setLoading(true);
     Promise.allSettled([
       customerApi.get("/catalog/products"),
-      customerApi.get("/catalog/parts"),
+      customerApi.get("/catalog/categories")
+        .catch(() => customerApi.get("/admin/categories?page=1&limit=500"))
+        .catch(() => customerApi.get("/categories")),
     ])
-      .then(([pRes, partsRes]) => {
+      .then(([pRes, catRes]) => {
         let list: ProductItem[] = [];
+        let loadedCats: DynamicCategory[] = [];
+
         if (pRes.status === "fulfilled") {
-          const items = unwrapList<ProductItem>(pRes.value.data?.data ?? pRes.value.data);
-          list = [...list, ...items];
+          const rawItems = unwrapList<any>(pRes.value.data?.data ?? pRes.value.data);
+          const activeAppliances = rawItems
+            .filter((i) => i.isActive !== false)
+            .filter((i) => !isPartItem(i));
+          list = activeAppliances.map((p) => normalizeItem(p, "RO"));
         }
-        if (partsRes.status === "fulfilled") {
-          const parts = unwrapList<ProductItem>(partsRes.value.data?.data ?? partsRes.value.data);
-          list = [...list, ...parts.map((p) => ({ ...p, category: p.category || "PARTS" }))];
+        if (catRes.status === "fulfilled") {
+          const rawCats = unwrapList<DynamicCategory>(catRes.value.data?.data ?? catRes.value.data);
+          loadedCats = rawCats
+            .filter((c) => c.isActive !== false)
+            .filter((c) => !isPartText(c.id) && !isPartText(c.name));
         }
+
+        // Discover custom appliance categories from loaded products
+        const existingCatIds = new Set(loadedCats.map((c) => c.id.toLowerCase()));
+        const existingCatNames = new Set(loadedCats.map((c) => c.name.toLowerCase()));
+        const standardEnumKeys = new Set(["ro", "ac", "geyser", "fridge", "other", "all", "parts", "part"]);
+
+        const extraProductCats: DynamicCategory[] = [];
+        list.forEach((p) => {
+          if (p.categoryId && !existingCatIds.has(p.categoryId.toLowerCase()) && !isPartText(p.categoryId)) {
+            extraProductCats.push({
+              id: p.categoryId,
+              name: p.category && !standardEnumKeys.has(p.category.toLowerCase()) && !isPartText(p.category) ? p.category : `Category-${p.categoryId.slice(0, 6)}`,
+              type: "PRODUCT",
+              icon: "📦",
+              isActive: true,
+            });
+            existingCatIds.add(p.categoryId.toLowerCase());
+          }
+          if (p.category && !standardEnumKeys.has(p.category.toLowerCase()) && !existingCatNames.has(p.category.toLowerCase()) && !isPartText(p.category)) {
+            extraProductCats.push({
+              id: p.category,
+              name: p.category,
+              type: "PRODUCT",
+              icon: "📦",
+              isActive: true,
+            });
+            existingCatNames.add(p.category.toLowerCase());
+          }
+        });
+
+        setDynamicCategories([...loadedCats, ...extraProductCats]);
         setProducts(list.length > 0 ? list : DEFAULT_INDIAN_APPLIANCES);
       })
       .catch(() => setProducts(DEFAULT_INDIAN_APPLIANCES))
@@ -303,11 +402,60 @@ export function CustomerCatalogPage() {
 
   useEffect(load, []);
 
+  // Compute combined category items for icons bar and filter pills (Appliances & dynamic non-parts only)
+  const allCategoryItems = useMemo(() => {
+    const standard = [
+      { id: "ALL", label: "All Items", icon: "🏬" },
+      { id: "RO", label: "RO Purifiers", icon: "💧" },
+      { id: "AC", label: "Split ACs", icon: "❄️" },
+      { id: "FRIDGE", label: "Refrigerators", icon: "🧊" },
+      { id: "GEYSER", label: "Water Heaters", icon: "🔥" },
+    ];
+
+    const standardIds = new Set(standard.map((s) => s.id.toLowerCase()));
+    const standardLabels = new Set(standard.map((s) => s.label.toLowerCase()));
+
+    const customItems = dynamicCategories
+      .filter((d) => !standardIds.has(d.id.toLowerCase()) && !standardLabels.has(d.name.toLowerCase()))
+      .filter((d) => !isPartText(d.id) && !isPartText(d.name))
+      .map((d) => ({
+        id: d.id,
+        label: d.name,
+        icon: resolveCategoryEmoji(d.icon, "📦"),
+      }));
+
+    return [...standard, ...customItems];
+  }, [dynamicCategories]);
+
+  // Category matching helper
+  const matchCategory = (prod: ProductItem, selected: string) => {
+    if (selected === "ALL") return true;
+    const cat = (prod.category || "").toUpperCase();
+    const sel = selected.toUpperCase();
+
+    if (prod.categoryId === selected || prod.category === selected) return true;
+
+    // Check dynamic category match
+    const dyn = dynamicCategories.find((d) => d.id === selected || d.name.toUpperCase() === sel);
+    if (dyn) {
+      if (prod.categoryId === dyn.id) return true;
+      if (prod.category?.toUpperCase() === dyn.name.toUpperCase()) return true;
+      if (prod.name?.toLowerCase().includes(dyn.name.toLowerCase())) return true;
+      if (prod.description?.toLowerCase().includes(dyn.name.toLowerCase())) return true;
+    }
+
+    if (sel === "RO") return cat.includes("RO") || cat.includes("PURIFIER") || cat.includes("WATER") || cat === "RO";
+    if (sel === "AC") return cat.includes("AC") || cat.includes("AIR") || cat.includes("COOL") || cat === "AC";
+    if (sel === "FRIDGE") return cat.includes("FRIDGE") || cat.includes("REFRIGERATOR");
+    if (sel === "GEYSER") return cat.includes("GEYSER") || cat.includes("HEATER");
+    return cat === sel || cat.includes(sel);
+  };
+
   // Filter & Sort
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
-        if (selectedCategory !== "ALL" && p.category?.toUpperCase() !== selectedCategory) {
+        if (!matchCategory(p, selectedCategory)) {
           return false;
         }
         if (inStockOnly && p.stock <= 0) {
@@ -330,7 +478,67 @@ export function CustomerCatalogPage() {
         if (sortBy === "rating") return (b.rating || 4.5) - (a.rating || 4.5);
         return 0;
       });
-  }, [products, selectedCategory, searchQuery, sortBy, inStockOnly]);
+  }, [products, selectedCategory, searchQuery, sortBy, inStockOnly, dynamicCategories]);
+
+  // Dynamic Deal of the Day product from real catalog
+  const dealProduct = useMemo(() => {
+    const withDiscount = products.find((p) => (Number(p.discountPercent) || 0) >= 25 && matchCategory(p, "RO"));
+    return withDiscount || products[0] || DEFAULT_INDIAN_APPLIANCES[0];
+  }, [products]);
+
+  // Dynamic Multi-Image Promo Grids driven entirely by real catalog appliances
+  const multiImageOffers = useMemo(() => {
+    // 1. Water Purifiers (RO)
+    const roProds = products.filter((p) => matchCategory(p, "RO"));
+    const roFallbackImages = [
+      "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=400&q=80",
+    ];
+
+    const roItems = (roProds.length > 0 ? roProds.slice(0, 4) : DEFAULT_INDIAN_APPLIANCES.filter((p) => p.category === "RO")).map((p, idx) => ({
+      id: p.id,
+      name: p.name.length > 20 ? p.name.slice(0, 18) + "..." : p.name,
+      fullName: p.name,
+      discount: `${p.discountPercent || 35}% off`,
+      img: p.images?.[0] || roFallbackImages[idx % roFallbackImages.length],
+      product: p,
+    }));
+
+    // 2. Cooling & Living Appliances (AC, Fridge, Geyser, etc.)
+    const acProds = products.filter((p) => matchCategory(p, "AC") || matchCategory(p, "FRIDGE") || matchCategory(p, "GEYSER") || !matchCategory(p, "RO"));
+    const acFallbackImages = [
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=400&q=80",
+    ];
+
+    const acItems = (acProds.length > 0 ? acProds.slice(0, 4) : DEFAULT_INDIAN_APPLIANCES.filter((p) => p.category !== "RO")).map((p, idx) => ({
+      id: p.id,
+      name: p.name.length > 20 ? p.name.slice(0, 18) + "..." : p.name,
+      fullName: p.name,
+      discount: `${p.discountPercent || 30}% off`,
+      img: p.images?.[0] || acFallbackImages[idx % acFallbackImages.length],
+      product: p,
+    }));
+
+    return [
+      {
+        title: "Top Rated Pure Water Tech",
+        tag: "Up to 50% Off",
+        category: "RO",
+        items: roItems,
+      },
+      {
+        title: "Keep Your Home Cool & Fresh",
+        tag: "Save Big",
+        category: "AC",
+        items: acItems,
+      },
+    ];
+  }, [products]);
 
   const addToCart = async (product: ProductItem, qty = 1) => {
     setAddingId(product.id);
@@ -375,8 +583,8 @@ export function CustomerCatalogPage() {
 
       <PageHeader
         eyebrow="ROCARE India Store"
-        title="Appliance &amp; Spare Parts Hub"
-        description="Authentic Water Purifiers, Split ACs, Refrigerators, Geysers, and certified spare parts with free doorstep installation."
+        title="Appliances Hub"
+        description="Authentic Water Purifiers, Split ACs, Refrigerators, Geysers, and home appliances with free doorstep installation."
         action={
           <div className="flex items-center gap-2">
             <Button accent="teal" variant="secondary" onClick={() => navigate("/customer/offers")}>
@@ -407,21 +615,21 @@ export function CustomerCatalogPage() {
       )}
 
       {/* Category Icons Row (Flutterzone Top Categories) */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-        {CATEGORY_ITEMS.map((cat) => {
+      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-6 lg:grid-cols-8">
+        {allCategoryItems.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 min-w-[100px] sm:min-w-0 shrink-0 ${
                 isSelected
                   ? "bg-[#0f766e] text-white border-[#0f766e] shadow-lg shadow-teal-900/20 scale-105"
                   : "bg-white dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-[#0f766e]/50 hover:bg-teal-50/50 dark:hover:bg-gray-800"
               }`}
             >
               <span className="text-2xl mb-1">{cat.icon}</span>
-              <span className="text-xs font-bold tracking-tight text-center">{cat.label}</span>
+              <span className="text-xs font-bold tracking-tight text-center truncate w-full">{cat.label}</span>
             </button>
           );
         })}
@@ -485,68 +693,80 @@ export function CustomerCatalogPage() {
       {/* Deal of the Day & Multi-Image Offer Grid Section (Flutterzone Amazon style) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Deal of the Day Card */}
-        <Card className="p-6 border border-teal-500/30 dark:border-teal-500/20 bg-gradient-to-b from-teal-50/40 via-white to-white dark:from-teal-950/20 dark:via-gray-900 dark:to-gray-900 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-extrabold text-white uppercase tracking-wider animate-pulse">
-                🔥 Deal of the Day
-              </span>
-              <div className="flex items-center gap-1 font-mono text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900">
-                <span>⏱</span>
-                <span>
-                  {String(dealTimeLeft.hours).padStart(2, "0")}:{String(dealTimeLeft.minutes).padStart(2, "0")}:{String(dealTimeLeft.seconds).padStart(2, "0")}
+        {dealProduct && (
+          <Card className="p-6 border border-teal-500/30 dark:border-teal-500/20 bg-gradient-to-b from-teal-50/40 via-white to-white dark:from-teal-950/20 dark:via-gray-900 dark:to-gray-900 shadow-lg flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-extrabold text-white uppercase tracking-wider animate-pulse">
+                  🔥 Deal of the Day
+                </span>
+                <div className="flex items-center gap-1 font-mono text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900">
+                  <span>⏱</span>
+                  <span>
+                    {String(dealTimeLeft.hours).padStart(2, "0")}:{String(dealTimeLeft.minutes).padStart(2, "0")}:{String(dealTimeLeft.seconds).padStart(2, "0")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center p-2 relative">
+                <img
+                  src={dealProduct.images?.[0] || "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=500&q=80"}
+                  alt={dealProduct.name}
+                  className="h-full w-full object-contain hover:scale-105 transition-transform duration-300"
+                />
+                <span className="absolute bottom-2 left-2 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {dealProduct.discountPercent || 35}% OFF
                 </span>
               </div>
+
+              <h3 className="mt-3 font-display text-base font-bold text-gray-900 dark:text-white leading-snug">
+                {dealProduct.name}
+              </h3>
+              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                {dealProduct.description || "Mineral-infused RO + UV + UF water filtration with free 1-year filters and on-demand roadside assistance."}
+              </p>
             </div>
 
-            <div className="mt-4 aspect-video w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center p-2 relative">
-              <img
-                src="https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=500&q=80"
-                alt="Deal of Day"
-                className="h-full w-full object-contain hover:scale-105 transition-transform duration-300"
-              />
-              <span className="absolute bottom-2 left-2 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                35% OFF
-              </span>
+            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800">
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="font-mono text-xl font-extrabold text-[#0f766e] dark:text-teal-400">
+                  ₹{Number(dealProduct.price).toLocaleString("en-IN")}
+                </span>
+                {dealProduct.originalPrice && (
+                  <span className="font-mono text-xs text-gray-400 line-through">
+                    ₹{Number(dealProduct.originalPrice).toLocaleString("en-IN")}
+                  </span>
+                )}
+                {dealProduct.originalPrice && (
+                  <span className="text-[11px] font-bold text-emerald-600">
+                    Save ₹{(Number(dealProduct.originalPrice) - Number(dealProduct.price)).toLocaleString("en-IN")}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  accent="teal"
+                  variant="secondary"
+                  onClick={() => setSelectedProduct(dealProduct)}
+                  className="!py-2 !text-xs font-bold"
+                >
+                  Quick View
+                </Button>
+                <Button
+                  accent="teal"
+                  onClick={() => addToCart(dealProduct)}
+                  loading={addingId === dealProduct.id}
+                  className="!py-2 !text-xs font-bold"
+                >
+                  Add to Cart
+                </Button>
+              </div>
             </div>
+          </Card>
+        )}
 
-            <h3 className="mt-3 font-display text-base font-bold text-gray-900 dark:text-white leading-snug">
-              ROCARE AquaMatrix 10-Stage Copper RO Purifier
-            </h3>
-            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-              Mineral-infused RO + UV + UF water filtration with free 1-year filters and on-demand roadside assistance.
-            </p>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800">
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="font-mono text-xl font-extrabold text-[#0f766e] dark:text-teal-400">₹14,999</span>
-              <span className="font-mono text-xs text-gray-400 line-through">₹22,999</span>
-              <span className="text-[11px] font-bold text-emerald-600">Save ₹8,000</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                accent="teal"
-                variant="secondary"
-                onClick={() => setSelectedProduct(DEFAULT_INDIAN_APPLIANCES[0])}
-                className="!py-2 !text-xs font-bold"
-              >
-                Quick View
-              </Button>
-              <Button
-                accent="teal"
-                onClick={() => addToCart(DEFAULT_INDIAN_APPLIANCES[0])}
-                loading={addingId === DEFAULT_INDIAN_APPLIANCES[0].id}
-                className="!py-2 !text-xs font-bold"
-              >
-                Add to Cart
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        {/* 4-Image Grid Promo 1 */}
-        {MULTI_IMAGE_OFFERS.map((offer, idx) => (
+        {/* 4-Image Grid Promo 1 & 2 */}
+        {multiImageOffers.map((offer, idx) => (
           <Card
             key={idx}
             className="p-6 border border-gray-200 dark:border-gray-800 hover:shadow-lg transition-all flex flex-col justify-between"
@@ -564,15 +784,29 @@ export function CustomerCatalogPage() {
                 {offer.items.map((item, i) => (
                   <button
                     key={i}
-                    onClick={() => setSelectedCategory(offer.category)}
-                    className="flex flex-col items-center rounded-xl bg-gray-50 dark:bg-gray-800/60 p-2 border border-gray-100 dark:border-gray-800 hover:bg-teal-50/50 transition-colors text-left"
+                    onClick={() => {
+                      if (item.product) {
+                        setSelectedProduct(item.product);
+                      } else {
+                        setSelectedCategory(offer.category);
+                      }
+                    }}
+                    className="flex flex-col items-center rounded-xl bg-gray-50 dark:bg-gray-800/60 p-2 border border-gray-100 dark:border-gray-800 hover:bg-teal-50/50 dark:hover:bg-teal-950/30 transition-colors text-left group"
                   >
-                    <img
-                      src={item.img}
-                      alt={item.name}
-                      className="h-20 w-full object-cover rounded-lg mb-1.5"
-                    />
-                    <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate w-full">
+                    <div className="h-20 w-full overflow-hidden rounded-lg mb-1.5 bg-white dark:bg-gray-900 flex items-center justify-center p-1 border border-gray-100 dark:border-gray-800">
+                      <img
+                        src={item.img}
+                        alt={item.fullName || item.name}
+                        className="h-full w-full object-contain group-hover:scale-105 transition-transform"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            offer.category === "RO"
+                              ? "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80"
+                              : "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=400&q=80";
+                        }}
+                      />
+                    </div>
+                    <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate w-full" title={item.fullName}>
                       {item.name}
                     </p>
                     <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -599,7 +833,7 @@ export function CustomerCatalogPage() {
         <div className="relative w-full md:max-w-md">
           <input
             type="text"
-            placeholder="Search water purifiers, split ACs, spare filters, membranes..."
+            placeholder="Search water purifiers, split ACs, refrigerators, geysers, appliances..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 pl-10 pr-4 py-2 text-xs font-medium text-gray-900 dark:text-white focus:border-[#0f766e] focus:outline-none"
@@ -654,7 +888,7 @@ export function CustomerCatalogPage() {
             No appliances match your search criteria
           </p>
           <p className="mt-1 text-xs text-gray-500 max-w-sm mx-auto">
-            Try clearing filters or searching for generic terms like &ldquo;RO&rdquo;, &ldquo;AC&rdquo;, or &ldquo;Membrane&rdquo;.
+            Try clearing filters or searching for terms like &ldquo;RO&rdquo;, &ldquo;AC&rdquo;, or &ldquo;Geyser&rdquo;.
           </p>
           <Button
             accent="teal"
@@ -676,8 +910,11 @@ export function CustomerCatalogPage() {
             const originalPrice = p.originalPrice
               ? (typeof p.originalPrice === "string" ? parseFloat(p.originalPrice.replace(/,/g, "")) : p.originalPrice)
               : Math.round(numPrice * 1.35);
-            const discountPercent = p.discountPercent || Math.round(((originalPrice - numPrice) / originalPrice) * 100);
+            const discountPercent = Number(p.discountPercent) || Math.round(((Number(originalPrice) - Number(numPrice)) / Number(originalPrice)) * 100);
             const displayImg = p.images?.[0] || "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80";
+
+            const dynCatMatch = dynamicCategories.find((d) => d.id === p.categoryId || d.name === p.category);
+            const catLabel = dynCatMatch ? `${dynCatMatch.icon ? dynCatMatch.icon + " " : ""}${dynCatMatch.name}` : p.category;
 
             return (
               <Card
@@ -687,8 +924,8 @@ export function CustomerCatalogPage() {
                 <div>
                   {/* Top Badges */}
                   <div className="mb-3 flex items-center justify-between gap-2">
-                    <Badge tone={p.category === "RO" ? "teal" : p.category === "AC" ? "orange" : "slate"}>
-                      {p.category}
+                    <Badge tone={p.category?.includes("RO") ? "teal" : p.category?.includes("AC") ? "orange" : "slate"}>
+                      {catLabel}
                     </Badge>
                     {p.stock <= 0 ? (
                       <Badge tone="danger">Out of stock</Badge>
@@ -709,9 +946,11 @@ export function CustomerCatalogPage() {
                       alt={p.name}
                       className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="absolute top-2 left-2 rounded-md bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5">
-                      {discountPercent}% OFF
-                    </span>
+                    {Number(discountPercent) > 0 && (
+                      <span className="absolute top-2 left-2 rounded-md bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5">
+                        {discountPercent}% OFF
+                      </span>
+                    )}
                   </div>
 
                   {/* Star rating */}
@@ -743,9 +982,11 @@ export function CustomerCatalogPage() {
                         <span className="font-mono text-lg font-extrabold text-[#0f766e] dark:text-teal-400">
                           ₹{numPrice.toLocaleString("en-IN")}
                         </span>
-                        <span className="font-mono text-xs text-gray-400 line-through">
-                          ₹{originalPrice.toLocaleString("en-IN")}
-                        </span>
+                        {Number(originalPrice) > Number(numPrice) && (
+                          <span className="font-mono text-xs text-gray-400 line-through">
+                            ₹{Number(originalPrice).toLocaleString("en-IN")}
+                          </span>
+                        )}
                       </div>
                       <p className="text-[10px] text-emerald-600 font-semibold">Free Doorstep Setup</p>
                     </div>

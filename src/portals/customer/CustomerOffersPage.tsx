@@ -44,11 +44,11 @@ const DEFAULT_COUPONS: Coupon[] = [
   },
   {
     id: "c-3",
-    code: "GENUINEPARTS",
+    code: "SMARTCARE",
     discountType: "PERCENT",
     discountValue: 20,
     minOrderAmount: 999,
-    description: "Flat 20% off on all certified replacement membranes, filters, and spare kits.",
+    description: "Flat 20% off on all home appliances, water purifiers, and kitchen accessories.",
   },
   {
     id: "c-4",
@@ -142,7 +142,7 @@ export function CustomerOffersPage() {
             Up to ₹2,500 Off on High-Efficiency Purifiers &amp; Smart ACs
           </h2>
           <p className="mt-2 text-sm text-teal-100 font-medium">
-            Use verified promo coupons during checkout for instant bill deductions. 100% genuine ROCARE certified parts with free installation.
+            Use verified promo coupons during checkout for instant bill deductions with free doorstep installation.
           </p>
         </div>
       </div>
