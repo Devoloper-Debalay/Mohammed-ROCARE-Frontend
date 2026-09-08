@@ -1,6 +1,6 @@
-# ROCARE India — RO, AC, Refrigerator & Geyser Service Platform
+# Just24You India — RO, AC, Refrigerator & Geyser Service Platform
 
-ROCARE India is a comprehensive multi-appliance care platform built with **React**, **TypeScript**, and **Tailwind CSS**. It covers sales, periodic maintenance, AMC subscriptions, and verified doorstep repair for **RO Water Purifiers**, **Air Conditioners (AC)**, **Refrigerators (Fridges)**, and **Geysers (Water Heaters)**.
+Just24You India is a comprehensive multi-appliance care platform built with **React**, **TypeScript**, and **Tailwind CSS**. It covers sales, periodic maintenance, AMC subscriptions, and verified doorstep repair for **RO Water Purifiers**, **Air Conditioners (AC)**, **Refrigerators (Fridges)**, and **Geysers (Water Heaters)**.
 
 ---
 
@@ -57,4 +57,4 @@ npm run build
 ```
 
 ---
-© ROCARE India Platform. All rights reserved.
+© Just24You India Platform. All rights reserved.

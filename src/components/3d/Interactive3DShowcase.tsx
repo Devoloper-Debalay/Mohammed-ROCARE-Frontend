@@ -14,7 +14,7 @@ interface ProductModel {
 const APPLIANCES: ProductModel[] = [
   {
     id: "ro-pro",
-    name: "ROCARE AquaMatrix 10-Stage RO Purifier",
+    name: "Just24You AquaMatrix 10-Stage RO Purifier",
     category: "RO Purifier",
     tagline: "0.0001µm Reverse Osmosis Membrane with Active Copper, Zinc & TDS Balancer",
     specs: [
@@ -33,7 +33,7 @@ const APPLIANCES: ProductModel[] = [
   },
   {
     id: "ac-smart",
-    name: "ROCARE FrostWave Dual-Inverter AC (1.5T)",
+    name: "Just24You FrostWave Dual-Inverter AC (1.5T)",
     category: "Air Conditioner",
     tagline: "100% Grooved Copper Condenser with PM2.5 Anti-Bacterial Nano Filter",
     specs: [
@@ -52,7 +52,7 @@ const APPLIANCES: ProductModel[] = [
   },
   {
     id: "fridge-smart",
-    name: "ROCARE CoolMatrix Frost-Free Refrigerator",
+    name: "Just24You CoolMatrix Frost-Free Refrigerator",
     category: "Refrigerator",
     tagline: "Digital Inverter Multi-Airflow System with Dual Cooling Technology",
     specs: [
@@ -71,7 +71,7 @@ const APPLIANCES: ProductModel[] = [
   },
   {
     id: "geyser-shield",
-    name: "ROCARE ThermaShield 25L Digital Geyser",
+    name: "Just24You ThermaShield 25L Digital Geyser",
     category: "Water Heater",
     tagline: "Glass-Lined Titanium Tank with Hard Water Anti-Scale Protection",
     specs: [
@@ -332,7 +332,7 @@ export function Interactive3DShowcase() {
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-teal animate-pulse" />
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-teal-deep dark:text-teal">
-              ROCARE India 3D Engineering Lab
+              Just24You India 3D Engineering Lab
             </span>
           </div>
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5">

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { vendorApi, unwrapList } from "@/lib/apiClient";
 import { sfx } from "@/lib/soundEffects";
 import { ActionSuccessModal } from "@/components/ui/ActionSuccessModal";
+import { KycStatusModal } from "@/components/ui/KycStatusModal";
+import { useVendorAuth, isVendorApproved } from "@/store/authStore";
 
 export interface Lead {
   id: string;
@@ -39,7 +41,10 @@ type FilterTab = "ALL" | "NEW" | "ACCEPTED" | "ONGOING" | "COMPLETED" | "DENIED"
 export function VendorLeadsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+  const { user } = useVendorAuth();
+  const approved = isVendorApproved(user);
+  const [showKycModal, setShowKycModal] = useState(false);
+
   const initialStatus = searchParams.get("status")?.toUpperCase() || "ALL";
   const [activeTab, setActiveTab] = useState<FilterTab>(
     ["ALL", "NEW", "ACCEPTED", "ONGOING", "COMPLETED", "DENIED"].includes(initialStatus)
@@ -113,6 +118,16 @@ export function VendorLeadsPage() {
     fetchLeads(false);
   }, [fetchLeads]);
 
+  useEffect(() => {
+    vendorApi
+      .get("/vendor/wallet")
+      .then((res) => {
+        const wallet = res.data?.data ?? res.data;
+        if (wallet?.balance !== undefined) setWalletBalance(wallet.balance);
+      })
+      .catch(() => {});
+  }, []);
+
   // Realtime Polling every 12 seconds for live lead assignment dispatches
   useEffect(() => {
     const interval = setInterval(() => {
@@ -140,6 +155,10 @@ export function VendorLeadsPage() {
   };
 
   const acceptLead = async (leadId: string, leadCharge: string | number = 50) => {
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
     setActingId(leadId);
     setError("");
     try {
@@ -166,6 +185,11 @@ export function VendorLeadsPage() {
 
   const handleCreateVendorLead = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!approved) {
+      setShowAddLeadModal(false);
+      setShowKycModal(true);
+      return;
+    }
     setIsSubmittingLead(true);
     setError("");
 
@@ -325,7 +349,7 @@ export function VendorLeadsPage() {
         <div className="flex items-center gap-2">
           {/* Add Lead Button */}
           <button
-            onClick={() => setShowAddLeadModal(true)}
+            onClick={() => (approved ? setShowAddLeadModal(true) : setShowKycModal(true))}
             className="flex items-center gap-1.5 rounded-xl bg-white text-[#1E88E5] hover:bg-white/90 px-3.5 py-2 text-xs font-black shadow-md transition-all active:scale-95"
             title="Create Direct Service Lead"
           >
@@ -343,9 +367,10 @@ export function VendorLeadsPage() {
           <Link
             to="/vendor/wallet"
             className="flex items-center gap-1.5 rounded-xl bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-bold transition-colors"
+            title="Wallet balance"
           >
             <span>💰</span>
-            <span>Wallet</span>
+            <span>🪙 {walletBalance} Coins</span>
           </Link>
         </div>
       </div>
@@ -792,6 +817,13 @@ export function VendorLeadsPage() {
         message={successModal.message}
         leadId={successModal.leadId}
         subDetail={successModal.subDetail}
+      />
+
+      <KycStatusModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        verificationStatus={user?.verificationStatus}
+        profileStatus={user?.profileStatus}
       />
     </div>
   );

@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught rendering error in ROCARE:", error, errorInfo);
+    console.error("Uncaught rendering error in Just24You:", error, errorInfo);
   }
 
   private handleReset = () => {

@@ -36,7 +36,7 @@ export function AuthShell({ children, portalName, accent, tagline }: AuthShellPr
           </p>
           {children}
         </div>
-        <p className="text-xs text-ink-soft/60">© {new Date().getFullYear()} ROCARE. All rights reserved.</p>
+        <p className="text-xs text-ink-soft/60">© {new Date().getFullYear()} Just24You. All rights reserved.</p>
       </div>
       <div className="relative hidden items-center justify-center overflow-hidden lg:flex bg-slate-50 dark:bg-[#070b14] border-l border-slate-200 dark:border-gray-800/80 transition-colors duration-200">
         <div

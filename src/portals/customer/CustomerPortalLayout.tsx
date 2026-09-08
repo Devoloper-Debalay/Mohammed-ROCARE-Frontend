@@ -126,7 +126,7 @@ export function CustomerPortalLayout() {
     <PortalShell
       navItems={navItems}
       accent="teal"
-      portalLabel="ROCARE Customer Portal"
+      portalLabel="Just24You Customer Portal"
       userLabel={fullName}
       userMeta={user?.phone || user?.email || "+91 90516 07464"}
       userBadge={
@@ -140,7 +140,7 @@ export function CustomerPortalLayout() {
       }}
     >
       <Outlet />
-      <FloatingChatbot botName="ROCARE Assistant" botSubtitle="Customer Support AI" />
+      <FloatingChatbot botName="Just24You Assistant" botSubtitle="Customer Support AI" />
     </PortalShell>
   );
 }

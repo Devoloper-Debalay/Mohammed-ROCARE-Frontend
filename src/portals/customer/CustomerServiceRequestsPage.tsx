@@ -184,7 +184,7 @@ export function CustomerServiceRequestsPage() {
           onClose={() => setTrackingRequest(null)}
           serviceId={trackingRequest.id}
           serviceTitle={trackingRequest.service?.name || "Doorstep Appliance Service"}
-          vendorName="Verified ROCARE Technician"
+          vendorName="Verified Just24You Technician"
           vendorPhone="+91 90516 07464"
         />
       )}
@@ -197,7 +197,7 @@ export function CustomerServiceRequestsPage() {
           onClose={() => setQrRequest(null)}
           title={`Service Verification Pass • #${qrRequest.id.slice(0, 8)}`}
           subtitle="Show this QR code to the verified technician on doorstep arrival"
-          initialValue={`ROCARE-SERVICE:${qrRequest.id}:OTP-5812:STATUS:${qrRequest.status}`}
+          initialValue={`Just24You-SERVICE:${qrRequest.id}:OTP-5812:STATUS:${qrRequest.status}`}
         />
       )}
 
@@ -276,7 +276,7 @@ export function CustomerServiceRequestsPage() {
         <Card className="p-10 text-center border border-gray-200 dark:border-gray-800">
           <p className="font-display text-xl font-bold text-gray-900 dark:text-white">No active service requests</p>
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-            Book a service above to get a certified ROCARE India technician dispatched with live Google Maps tracking.
+            Book a service above to get a certified Just24You India technician dispatched with live Google Maps tracking.
           </p>
         </Card>
       ) : (

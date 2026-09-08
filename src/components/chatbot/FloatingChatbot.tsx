@@ -13,7 +13,7 @@ interface FloatingChatbotProps {
 
 export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
   initialChatUrl,
-  botName = "ROCARE Assistant",
+  botName = "Just24You Assistant",
   botSubtitle = "AI Support & Diagnostics",
   defaultOpen = false,
 }) => {
@@ -67,7 +67,7 @@ export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
           showWelcomeScreen: false,
           defaultLanguage: "en",
           initialMessages: [
-            "Hi! I am ROCARE Assistant. How can I help you today?"
+            "Hi! I am Just24You Assistant. How can I help you today?"
           ],
           i18n: {
             en: {
@@ -217,7 +217,7 @@ export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
               >
                 <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3" />
                 <span className="text-xs tracking-wider uppercase font-semibold">
-                  Connecting ROCARE AI...
+                  Connecting Just24You AI...
                 </span>
               </div>
             )}
@@ -236,8 +236,8 @@ export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="pointer-events-auto relative group flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-pink-500 via-rose-500 to-purple-600 text-white shadow-xl hover:shadow-pink-500/35 hover:scale-105 active:scale-95 transition-all duration-200"
-        aria-label="Toggle ROCARE Assistant"
-        title="Open ROCARE Assistant (Alt+A)"
+        aria-label="Toggle Just24You Assistant"
+        title="Open Just24You Assistant (Alt+A)"
       >
         {isOpen ? (
           <X className="h-6 w-6 text-white transition-transform duration-200 rotate-0 group-hover:rotate-90" />

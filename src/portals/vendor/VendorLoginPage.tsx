@@ -4,8 +4,8 @@ import axios from "axios";
 import { AuthShell } from "@/components/layout/AuthShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { vendorApi } from "@/lib/apiClient";
-import { useVendorAuth } from "@/store/authStore";
+import { vendorApi, getErrorMessage } from "@/lib/apiClient";
+import { useVendorAuth, isVendorApproved } from "@/store/authStore";
 import type { ApiSuccessBody } from "@/lib/apiClient";
 
 export function VendorLoginPage() {
@@ -37,15 +37,9 @@ export function VendorLoginPage() {
       });
       const profileData = profileRes.data?.data ?? profileRes.data;
       setSession({ token, refreshToken, user: profileData });
-      navigate("/vendor/dashboard");
+      navigate(isVendorApproved(profileData) ? "/vendor/dashboard" : "/vendor/profile");
     } catch (err) {
-      setError(
-        axios.isAxiosError(err)
-          ? err.response?.data?.message ?? "Couldn't sign you in. Check your details."
-          : err instanceof Error
-          ? err.message
-          : "Something went wrong."
-      );
+      setError(getErrorMessage(err, "Couldn't sign you in. Check your details."));
     } finally {
       setLoading(false);
     }

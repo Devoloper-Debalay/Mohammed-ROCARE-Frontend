@@ -284,7 +284,7 @@ export function VendorDashboardPage() {
 
   const shareTechnicianInvite = () => {
     const text = encodeURIComponent(
-      `Join the ROCARE certified doorstep appliance technician network! Register with my sponsor referral code: ${referralCode} and get instant welcome wallet coins!`
+      `Join the Just24You certified doorstep appliance technician network! Register with my sponsor referral code: ${referralCode} and get instant welcome wallet coins!`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -299,7 +299,7 @@ export function VendorDashboardPage() {
         {/* Top Navbar Row */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-white/15 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <span className="font-display font-black text-xl tracking-tight text-white drop-shadow-sm">ROCARE Pro</span>
+            <span className="font-display font-black text-xl tracking-tight text-white drop-shadow-sm">Just24You Pro</span>
           </div>
 
           <div className="flex items-center gap-3">

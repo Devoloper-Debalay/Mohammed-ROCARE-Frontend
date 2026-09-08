@@ -320,7 +320,7 @@ export function SuperAdminAdminsPage() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="e.g. kolkata.ops@rocare.in"
+                  placeholder="e.g. kolkata.ops@just24you.in"
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>

@@ -73,6 +73,35 @@ class SoundEffectsEngine {
     } catch {}
   }
 
+  // 4. Attention-grabbing two-tone ping for a new incoming notification/lead
+  playNotify() {
+    try {
+      const ctx = this.initCtx();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const notes = [830.61, 1046.5]; // G#5, C6 — bright, short "ding-ding"
+
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.12;
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.18, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.25);
+      });
+    } catch {}
+  }
+
   // 3. Celebratory coin / fanfare chime sequence on completing a lead
   playComplete() {
     try {

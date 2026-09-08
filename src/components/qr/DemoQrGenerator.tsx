@@ -71,9 +71,9 @@ function generateQrMatrix(text: string): boolean[][] {
 }
 
 export function DemoQrGenerator({
-  initialValue = "ROCARE-SR-2026-08114:VERIFIED",
+  initialValue = "Just24You-SR-2026-08114:VERIFIED",
   backendData = null,
-  title = "ROCARE India Dynamic QR Generator",
+  title = "Just24You India Dynamic QR Generator",
   subtitle = "Generates instant scannable QR codes from backend API payloads & data",
   isModal = false,
   isOpen = true,
@@ -98,7 +98,7 @@ export function DemoQrGenerator({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const matrix = generateQrMatrix(qrText || "ROCARE-INDIA");
+    const matrix = generateQrMatrix(qrText || "Just24You-INDIA");
     const matrixSize = matrix.length;
     const padding = 16;
     const cellSize = 8;
@@ -152,12 +152,12 @@ export function DemoQrGenerator({
         })
       );
     } else if (type === "payment") {
-      setQrText("upi://pay?pa=rocare.india@icici&pn=ROCARE+India+Appliance+Care&am=1499.00&cu=INR");
+      setQrText("upi://pay?pa=just24you.india@icici&pn=Just24You+India+Appliance+Care&am=1499.00&cu=INR");
     } else if (type === "warranty") {
       setQrText(
         JSON.stringify({
           warrantyId: "WTY-RO-9982",
-          product: "ROCARE AquaMatrix 10-Stage Copper RO",
+          product: "Just24You AquaMatrix 10-Stage Copper RO",
           installedAt: "2026-08-30",
           validUntil: "2027-08-30",
           branch: "Kolkata Dunlop Hub",
@@ -172,7 +172,7 @@ export function DemoQrGenerator({
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rocare-qr-${Date.now()}.png`;
+    a.download = `just24you-qr-${Date.now()}.png`;
     a.click();
   };
 

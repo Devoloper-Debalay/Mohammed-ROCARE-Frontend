@@ -4,7 +4,7 @@ import { API_BASE_URL } from "./env";
 export type PortalKey = "customer" | "vendor" | "admin";
 
 const storageKey = (portal: PortalKey, field: "token" | "refreshToken" | "user") =>
-  `rocare.${portal}.${field}`;
+  `just24you.${portal}.${field}`;
 
 export const portalStorage = {
   getToken: (portal: PortalKey): string | null => {
@@ -52,6 +52,14 @@ export const portalStorage = {
     localStorage.removeItem(storageKey(portal, "refreshToken"));
     localStorage.removeItem(storageKey(portal, "user"));
   },
+  /** Persists just the user record — never touches the token/refreshToken. */
+  setUser: (portal: PortalKey, user: unknown) => {
+    if (user !== undefined && user !== null) {
+      localStorage.setItem(storageKey(portal, "user"), JSON.stringify(user));
+    } else {
+      localStorage.removeItem(storageKey(portal, "user"));
+    }
+  },
 };
 
 /**
@@ -95,6 +103,30 @@ export function createApiClient(portal: PortalKey): AxiosInstance {
 export const customerApi = createApiClient("customer");
 export const vendorApi = createApiClient("vendor");
 export const adminApi = createApiClient("admin");
+
+/**
+ * class-validator errors come back from the API as
+ * `{ message: [{ field, errors: string[] }, ...] }`, not a plain string.
+ * Renders it into text safe to drop straight into JSX instead of crashing
+ * React with "Objects are not valid as a React child".
+ */
+export function getErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    const message = err.response?.data?.message;
+    if (typeof message === "string" && message.trim()) return message;
+    if (Array.isArray(message)) {
+      const parts = message.map((entry) =>
+        entry && typeof entry === "object" && "field" in entry
+          ? `${entry.field}: ${[].concat(entry.errors).join(", ")}`
+          : String(entry)
+      );
+      if (parts.length) return parts.join(" ");
+    }
+    return fallback;
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
 
 export interface ApiSuccessBody<T = unknown> {
   success: true;

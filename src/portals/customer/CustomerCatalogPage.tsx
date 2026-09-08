@@ -5,7 +5,7 @@ import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Interactive3DShowcase } from "@/components/3d/Interactive3DShowcase";
 import { ProductDetailModal, type ProductItem } from "./components/ProductDetailModal";
-import { customerApi, unwrapList } from "@/lib/apiClient";
+import { customerApi, unwrapList, getErrorMessage } from "@/lib/apiClient";
 import { extractImages } from "@/portals/admin/AdminCatalogPage";
 import { API_BASE_URL } from "@/lib/env";
 import { useCustomerAuth } from "@/store/authStore";
@@ -15,7 +15,7 @@ const HERO_CAROUSEL_SLIDES = [
     id: 1,
     badge: "⚡ MONSOON FESTIVAL SALE",
     title: "Pure Drinking Water for Your Family",
-    subtitle: "Up to 45% Off on ROCARE 10-Stage Copper & Alkaline RO Purifiers with Free Installation",
+    subtitle: "Up to 45% Off on Just24You 10-Stage Copper & Alkaline RO Purifiers with Free Installation",
     gradient: "from-teal-900 via-[#0f766e] to-cyan-900",
     buttonText: "Explore RO Purifiers",
     category: "RO",
@@ -43,7 +43,7 @@ const HERO_CAROUSEL_SLIDES = [
 const DEFAULT_INDIAN_APPLIANCES: ProductItem[] = [
   {
     id: "ro-101",
-    name: "ROCARE AquaMatrix 10-Stage Copper RO Purifier",
+    name: "Just24You AquaMatrix 10-Stage Copper RO Purifier",
     category: "RO",
     description: "Multi-stage RO + UV + UF with active copper & zinc infusion. 20 L/hr high flow filtration with smart LED TDS display.",
     price: 14999,
@@ -546,20 +546,24 @@ export function CustomerCatalogPage() {
       await customerApi.post("/cart/items", { productId: product.id, quantity: qty });
       setToast(`✓ Added ${qty}x ${product.name} to cart!`);
       setTimeout(() => setToast(""), 2800);
-    } catch {
-      setToast(`✓ Added ${product.name} to cart.`);
-      setTimeout(() => setToast(""), 2500);
+    } catch (err) {
+      setToast(getErrorMessage(err, `Couldn't add ${product.name} to cart.`));
+      setTimeout(() => setToast(""), 3500);
     } finally {
       setAddingId(null);
     }
   };
 
   const handleBuyNow = async (product: ProductItem, qty = 1) => {
+    setAddingId(product.id);
     try {
       await customerApi.post("/cart/items", { productId: product.id, quantity: qty });
       navigate("/customer/cart");
-    } catch {
-      navigate("/customer/cart");
+    } catch (err) {
+      setToast(getErrorMessage(err, `Couldn't add ${product.name} to cart.`));
+      setTimeout(() => setToast(""), 3500);
+    } finally {
+      setAddingId(null);
     }
   };
 
@@ -582,7 +586,7 @@ export function CustomerCatalogPage() {
       </div>
 
       <PageHeader
-        eyebrow="ROCARE India Store"
+        eyebrow="Just24You India Store"
         title="Appliances Hub"
         description="Authentic Water Purifiers, Split ACs, Refrigerators, Geysers, and home appliances with free doorstep installation."
         action={

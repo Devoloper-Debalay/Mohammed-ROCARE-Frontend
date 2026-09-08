@@ -3,8 +3,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { DemoQrGenerator } from "@/components/qr/DemoQrGenerator";
-import { vendorApi, unwrapList } from "@/lib/apiClient";
+import { KycStatusModal } from "@/components/ui/KycStatusModal";
+import { vendorApi, unwrapList, getErrorMessage } from "@/lib/apiClient";
+import { openRazorpayCheckout } from "@/lib/razorpay";
+import { useVendorAuth, isVendorApproved } from "@/store/authStore";
 
 interface Transaction {
   id: string;
@@ -14,6 +16,7 @@ interface Transaction {
   balanceAfter?: string | number;
   createdAt: string;
   description?: string;
+  note?: string;
 }
 
 export function VendorWalletPage() {
@@ -22,7 +25,10 @@ export function VendorWalletPage() {
   const [amount, setAmount] = useState("500");
   const [loading, setLoading] = useState(true);
   const [recharging, setRecharging] = useState(false);
-  const [showUpiQr, setShowUpiQr] = useState(false);
+  const [error, setError] = useState("");
+  const { user } = useVendorAuth();
+  const approved = isVendorApproved(user);
+  const [showKycModal, setShowKycModal] = useState(false);
 
   // MLM Earnings Breakdown - Realtime from backend
   const [l1CommissionTotal, setL1CommissionTotal] = useState<number>(0);
@@ -56,27 +62,52 @@ export function VendorWalletPage() {
 
   const recharge = async (e: FormEvent) => {
     e.preventDefault();
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
+    setError("");
+    const rechargeAmount = Number(amount);
+    if (!rechargeAmount || rechargeAmount <= 0) {
+      setError("Enter a valid recharge amount.");
+      return;
+    }
+
     setRecharging(true);
     try {
-      await vendorApi.post("/vendor/wallet/recharge", { amount: Number(amount) });
-      setAmount("");
-      load();
-    } catch {
-      // Local transaction state update
-      setBalance((b) => String(Number(b) + Number(amount)));
-      setHistory((prev) => [
-        {
-          id: `tx-${Date.now()}`,
-          type: "RECHARGE",
-          status: "SUCCESS",
-          amount: `+${amount}`,
-          balanceAfter: String(Number(balance) + Number(amount)),
-          createdAt: new Date().toISOString(),
-          description: "Instant UPI / NetBanking Recharge",
+      const orderRes = await vendorApi.post("/vendor/wallet/recharge/order", { amount: rechargeAmount });
+      const order = orderRes.data?.data ?? orderRes.data;
+
+      await openRazorpayCheckout({
+        key: order.keyId,
+        amount: Math.round(order.amount * 100),
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "Just24You India",
+        description: "Wallet Recharge",
+        prefill: { name: user?.fullName, contact: user?.phone },
+        theme: { color: "#c2410c" },
+        handler: async (response) => {
+          try {
+            await vendorApi.post("/vendor/wallet/recharge/verify", {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            setAmount("");
+            load();
+          } catch (err) {
+            setError(getErrorMessage(err, "Payment received but verification failed. Contact support with your payment ID."));
+          } finally {
+            setRecharging(false);
+          }
         },
-        ...prev,
-      ]);
-    } finally {
+        modal: {
+          ondismiss: () => setRecharging(false),
+        },
+      });
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't start the payment. Try again."));
       setRecharging(false);
     }
   };
@@ -125,18 +156,6 @@ export function VendorWalletPage() {
         title="Wallet &amp; Commission Balance"
         description="Manage wallet coins used for accepting doorstep leads, purchasing parts, and collecting MLM sponsor override bonuses."
       />
-
-      {/* UPI QR Recharge Modal */}
-      {showUpiQr && (
-        <DemoQrGenerator
-          isModal
-          isOpen={showUpiQr}
-          onClose={() => setShowUpiQr(false)}
-          title={`Recharge Wallet with ₹${amount} via UPI`}
-          subtitle="Scan with GPay, PhonePe, Paytm, or BHIM to instantly credit wallet coins"
-          initialValue={`upi://pay?pa=rocare.technician@icici&pn=ROCARE+India+Wallet+Recharge&am=${amount}&cu=INR`}
-        />
-      )}
 
       {/* MLM Commission Breakdown Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -196,8 +215,8 @@ export function VendorWalletPage() {
                       <span className={`inline-block px-2 py-0.5 text-[10px] font-black rounded border mb-1 ${badge.style}`}>
                         {badge.label}
                       </span>
-                      {t.description && (
-                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{t.description}</p>
+                      {(t.description || t.note) && (
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{t.description || t.note}</p>
                       )}
                       <p className="text-[11px] font-medium text-gray-500">{new Date(t.createdAt).toLocaleString()}</p>
                     </div>
@@ -258,23 +277,22 @@ export function VendorWalletPage() {
               ))}
             </div>
 
-            <Button type="submit" accent="orange" loading={recharging} fullWidth className="font-bold !py-2.5 shadow-md">
-              Instant Card / NetBanking Recharge
-            </Button>
+            {error && <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>}
 
-            <Button
-              type="button"
-              variant="secondary"
-              accent="orange"
-              fullWidth
-              onClick={() => setShowUpiQr(true)}
-              className="font-bold !py-2.5"
-            >
-              📱 Scan &amp; Pay with UPI QR
+            <Button type="submit" accent="orange" loading={recharging} fullWidth className="font-bold !py-2.5 shadow-md">
+              💳 Recharge with Razorpay
             </Button>
+            <p className="text-[11px] text-gray-500 text-center">UPI, cards, netbanking &amp; wallets — via Razorpay's secure checkout.</p>
           </form>
         </Card>
       </div>
+
+      <KycStatusModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        verificationStatus={user?.verificationStatus}
+        profileStatus={user?.profileStatus}
+      />
     </div>
   );
 }

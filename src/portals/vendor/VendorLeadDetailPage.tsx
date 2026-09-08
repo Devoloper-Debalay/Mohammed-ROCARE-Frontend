@@ -8,9 +8,12 @@ import { StageBar } from "@/components/ui/StageRing";
 import { GoogleMapsTracker } from "@/components/tracking/GoogleMapsTracker";
 import { GeoTaggedCamera } from "@/components/camera/GeoTaggedCamera";
 import { DemoQrGenerator } from "@/components/qr/DemoQrGenerator";
-import { vendorApi } from "@/lib/apiClient";
+import { vendorApi, getErrorMessage } from "@/lib/apiClient";
 import { sfx } from "@/lib/soundEffects";
 import { ActionSuccessModal } from "@/components/ui/ActionSuccessModal";
+import { KycStatusModal } from "@/components/ui/KycStatusModal";
+import { useVendorAuth, isVendorApproved } from "@/store/authStore";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 interface Lead {
   id: string;
@@ -41,6 +44,9 @@ const stages = ["New", "Accepted", "In progress", "Closed"];
 export function VendorLeadDetailPage() {
   const { leadId } = useParams();
   const navigate = useNavigate();
+  const { user } = useVendorAuth();
+  const approved = isVendorApproved(user);
+  const [showKycModal, setShowKycModal] = useState(false);
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -52,6 +58,9 @@ export function VendorLeadDetailPage() {
   const [showGeoCamera, setShowGeoCamera] = useState<"start" | "deny" | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [geoCoords, setGeoCoords] = useState<{ latitude?: number; longitude?: number }>({});
+  const [showCompleteChoice, setShowCompleteChoice] = useState(false);
+  const [showCashModal, setShowCashModal] = useState(false);
+  const [cashAmount, setCashAmount] = useState("");
 
   // Modern Animated Success Modal State
   const [successModal, setSuccessModal] = useState<{
@@ -79,6 +88,10 @@ export function VendorLeadDetailPage() {
   useEffect(load, [leadId]);
 
   const accept = async () => {
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
     setActing(true);
     setError("");
     try {
@@ -108,6 +121,10 @@ export function VendorLeadDetailPage() {
 
   const start = async (e: FormEvent) => {
     e.preventDefault();
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
     setActing(true);
     setError("");
     try {
@@ -134,6 +151,10 @@ export function VendorLeadDetailPage() {
 
   const deny = async (e: FormEvent) => {
     e.preventDefault();
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
     setActing(true);
     setError("");
     try {
@@ -160,24 +181,83 @@ export function VendorLeadDetailPage() {
     }
   };
 
-  const complete = async () => {
+  const openCompleteChoice = () => {
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
+    setError("");
+    setCashAmount(lead?.estimatedAmount || "");
+    setShowCompleteChoice(true);
+  };
+
+  const onJobCompleted = () => {
+    sfx.playComplete();
+    setSuccessModal({
+      isOpen: true,
+      type: "COMPLETE",
+      title: "Service Completed Successfully! 🎉",
+      message: "Congratulations! The doorstep appliance service has been marked complete and customer warranty updated.",
+      leadId: leadId ? leadId.slice(0, 8) : undefined,
+      subDetail: "Customer satisfaction score recorded and credited to your technician profile.",
+    });
+    load();
+  };
+
+  const completeCash = async (e: FormEvent) => {
+    e.preventDefault();
+    const amount = Number(cashAmount);
+    if (!amount || amount <= 0) {
+      setError("Enter a valid cash amount.");
+      return;
+    }
     setActing(true);
     setError("");
     try {
-      await vendorApi.post(`/vendor/leads/${leadId}/complete`);
-      sfx.playComplete();
-      setSuccessModal({
-        isOpen: true,
-        type: "COMPLETE",
-        title: "Service Completed Successfully! 🎉",
-        message: "Congratulations! The doorstep appliance service has been marked complete and customer warranty updated.",
-        leadId: leadId ? leadId.slice(0, 8) : undefined,
-        subDetail: "Customer satisfaction score recorded and credited to your technician profile.",
-      });
-      load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? "Couldn't mark complete.");
+      await vendorApi.post(`/vendor/leads/${leadId}/complete/cash`, { amount });
+      setShowCashModal(false);
+      onJobCompleted();
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't record cash payment."));
     } finally {
+      setActing(false);
+    }
+  };
+
+  const completeRazorpay = async () => {
+    setActing(true);
+    setError("");
+    try {
+      const orderRes = await vendorApi.post(`/vendor/leads/${leadId}/complete/razorpay/order`);
+      const order = orderRes.data?.data ?? orderRes.data;
+
+      await openRazorpayCheckout({
+        key: order.keyId,
+        amount: Math.round(order.amount * 100),
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "Just24You India",
+        description: `Payment for ${lead?.serviceType || "service"}`,
+        prefill: { name: lead?.customerName, contact: lead?.phone },
+        theme: { color: "#c2410c" },
+        handler: async (response) => {
+          try {
+            await vendorApi.post(`/vendor/leads/${leadId}/complete/razorpay/verify`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            onJobCompleted();
+          } catch (err) {
+            setError(getErrorMessage(err, "Payment received but verification failed. Contact support."));
+          } finally {
+            setActing(false);
+          }
+        },
+        modal: { ondismiss: () => setActing(false) },
+      });
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't start the payment. Try again."));
       setActing(false);
     }
   };
@@ -222,7 +302,7 @@ export function VendorLeadDetailPage() {
           isOpen={showQrModal}
           onClose={() => setShowQrModal(false)}
           title={`Job QR Pass • #${lead.id.slice(0, 8)}`}
-          initialValue={`ROCARE-LEAD:${lead.id}:CUSTOMER:${lead.customerName}`}
+          initialValue={`Just24You-LEAD:${lead.id}:CUSTOMER:${lead.customerName}`}
         />
       )}
 
@@ -443,7 +523,7 @@ export function VendorLeadDetailPage() {
 
           {lead.status === "ONGOING" && !showDenyForm && (
             <div className="flex flex-wrap items-center gap-3 w-full">
-              <Button accent="orange" loading={acting} onClick={complete} className="flex-1 sm:flex-none">
+              <Button accent="orange" loading={acting} onClick={openCompleteChoice} className="flex-1 sm:flex-none">
                 ✓ Mark job complete
               </Button>
               <Button
@@ -627,6 +707,95 @@ export function VendorLeadDetailPage() {
         leadId={successModal.leadId}
         subDetail={successModal.subDetail}
       />
+
+      <KycStatusModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        verificationStatus={user?.verificationStatus}
+        profileStatus={user?.profileStatus}
+      />
+
+      {/* Payment method choice, shown when marking a job complete */}
+      {showCompleteChoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl border border-gray-200 dark:border-gray-800 text-center">
+            <h2 className="text-lg font-black text-gray-900 dark:text-white">How was payment collected?</h2>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Choose how the customer paid for this job before marking it complete.
+            </p>
+
+            <div className="mt-5 flex flex-col gap-3">
+              <Button
+                accent="orange"
+                fullWidth
+                onClick={() => {
+                  setShowCompleteChoice(false);
+                  setShowCashModal(true);
+                }}
+              >
+                💵 Received Cash
+              </Button>
+              <Button
+                accent="orange"
+                variant="secondary"
+                fullWidth
+                loading={acting}
+                onClick={() => {
+                  setShowCompleteChoice(false);
+                  completeRazorpay();
+                }}
+              >
+                💳 Pay via Razorpay
+              </Button>
+              <button
+                type="button"
+                onClick={() => setShowCompleteChoice(false)}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mt-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cash amount entry */}
+      {showCashModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl border border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-black text-gray-900 dark:text-white text-center">Cash Received</h2>
+            <p className="mt-1.5 text-xs text-gray-500 text-center">
+              Enter the amount you collected in cash. This is recorded for admin — it won't be added to your wallet.
+            </p>
+
+            <form onSubmit={completeCash} className="mt-5 flex flex-col gap-3">
+              <Input
+                label="Amount received (₹)"
+                type="number"
+                min={1}
+                value={cashAmount}
+                onChange={(e) => setCashAmount(e.target.value)}
+                required
+                autoFocus
+              />
+              {error && <p className="text-xs font-semibold text-danger">{error}</p>}
+              <Button type="submit" accent="orange" loading={acting} fullWidth>
+                Confirm &amp; Complete Job
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCashModal(false);
+                  setError("");
+                }}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

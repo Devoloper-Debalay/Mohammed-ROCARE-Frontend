@@ -84,14 +84,14 @@ export function ProductDetailModal({
     "100% Genuine OEM Certified Component with holographic QR seal",
     "Free doorstep delivery and professional technician unboxing",
     "Energy-efficient inverter engineering with low noise operation",
-    "1-Year ROCARE Comprehensive Warranty with on-demand roadside dispatch",
+    "1-Year Just24You Comprehensive Warranty with on-demand roadside dispatch",
     "7-Day Hassle-Free Replacement Guarantee if seal intact",
   ];
 
   const features = product.features && product.features.length > 0 ? product.features : defaultFeatures;
 
   const defaultSpecs = {
-    Brand: "ROCARE Certified",
+    Brand: "Just24You Certified",
     Category: product.category || "Appliance",
     Warranty: "12 Months Comprehensive",
     "Installation Type": "Free Doorstep by Certified Expert",
@@ -160,7 +160,7 @@ export function ProductDetailModal({
                 {discountPercent}% OFF
               </span>
               <span className="absolute bottom-3 left-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white">
-                ROCARE Verified
+                Just24You Verified
               </span>
             </div>
 
@@ -371,7 +371,7 @@ export function ProductDetailModal({
 
               {reviewSuccess ? (
                 <div className="p-6 text-center text-emerald-600 dark:text-emerald-400 font-bold">
-                  ✓ Thank you! Your review has been submitted to ROCARE.
+                  ✓ Thank you! Your review has been submitted to Just24You.
                 </div>
               ) : (
                 <form onSubmit={submitReview} className="space-y-4">

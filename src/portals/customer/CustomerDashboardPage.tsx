@@ -146,7 +146,7 @@ export function CustomerDashboardPage() {
 
   const shareOnWhatsApp = () => {
     const text = encodeURIComponent(
-      `Get ₹100 OFF on your first RO Water Purifier / Home Appliance service with ROCARE! Use my referral code: ${referralCode}`
+      `Get ₹100 OFF on your first RO Water Purifier / Home Appliance service with Just24You! Use my referral code: ${referralCode}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -154,7 +154,7 @@ export function CustomerDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="ROCARE India Customer Desk"
+        eyebrow="Just24You India Customer Desk"
         title={`Welcome back, ${user?.firstName || user?.name || "Customer"}`}
         description="Monitor your home appliance health, track live technician visits on Google Maps, and manage orders."
         action={
@@ -209,7 +209,7 @@ export function CustomerDashboardPage() {
           onClose={() => setShowQrModal(false)}
           title="Customer Digital Service Pass"
           subtitle="Show this QR code on technician doorstep arrival for instant job verification"
-          initialValue={`ROCARE-CUSTOMER:${user?.id || "CUST-9012"}:NAME:${user?.firstName || "Customer"}:CITY:KOLKATA`}
+          initialValue={`Just24You-CUSTOMER:${user?.id || "CUST-9012"}:NAME:${user?.firstName || "Customer"}:CITY:KOLKATA`}
         />
       )}
 
@@ -221,7 +221,7 @@ export function CustomerDashboardPage() {
           onClose={() => setShowFullTracker(false)}
           serviceId="SR-2026-08114"
           serviceTitle="Water Purifier (RO) & Appliance Service"
-          vendorName="Subhashish Roy (RO Care India Certified Vendor)"
+          vendorName="Subhashish Roy (Just24You India Certified Vendor)"
           vendorPhone="+91 90516 07464"
         />
       )}
@@ -377,7 +377,7 @@ export function CustomerDashboardPage() {
           isModal={false}
           serviceId="SR-2026-08114"
           serviceTitle="Water Purifier (RO) & Appliance Service"
-          vendorName="Subhashish Roy (RO Care India Certified Vendor)"
+          vendorName="Subhashish Roy (Just24You India Certified Vendor)"
           vendorPhone="+91 93115 87744"
           vehicleNumber="WB 02 AX 4819"
         />

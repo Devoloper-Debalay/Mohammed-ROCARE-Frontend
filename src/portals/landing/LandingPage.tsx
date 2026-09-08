@@ -154,7 +154,7 @@ const TRUST_METRICS = [
 
 const FAQS = [
   {
-    q: "What appliances does ROCARE India service?",
+    q: "What appliances does Just24You India service?",
     a: "We provide expert doorstep installation, repair, and maintenance for RO Water Purifiers, Air Conditioners (AC), Refrigerators (Fridges), and Geysers (Water Heaters) across all major brands including Kent, Aquaguard, Voltas, LG, Samsung, Daikin, and Havells.",
   },
   {
@@ -167,7 +167,7 @@ const FAQS = [
   },
   {
     q: "Are the spare parts genuine and covered under warranty?",
-    a: "Yes, we deal exclusively in 100% authentic, sealed manufacturer-grade components with an official 90-day ROCARE India service and replacement guarantee.",
+    a: "Yes, we deal exclusively in 100% authentic, sealed manufacturer-grade components with an official 90-day Just24You India service and replacement guarantee.",
   },
 ];
 
@@ -199,7 +199,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="font-bold tracking-wide">RO CARE INDIA • Doorstep Service within 30 Minutes</span>
+            <span className="font-bold tracking-wide">Just24You INDIA • Doorstep Service within 30 Minutes</span>
             <span className="hidden sm:inline text-white/60">|</span>
             <span className="hidden sm:inline text-emerald-300 font-bold">Rated 4.8/5 by 6,79,000+ Customers</span>
           </div>
@@ -249,7 +249,7 @@ export function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-600"></span>
             </span>
-            RO Care India — Best RO, AC, Fridge &amp; Geyser Service
+            Just24You India — Best RO, AC, Fridge &amp; Geyser Service
           </div>
 
           <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
@@ -355,7 +355,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 5. ROCARE Services Grid with Pricing & Discounts */}
+      {/* 5. Just24You Services Grid with Pricing & Discounts */}
       <section id="services" className="py-20 bg-[#f8fafc] dark:bg-[#0a0f18]">
         <div className="mx-auto max-w-7xl px-6 sm:px-10">
           <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
@@ -677,9 +677,9 @@ export function LandingPage() {
           isModal
           isOpen={showQrModal}
           onClose={() => setShowQrModal(false)}
-          title="ROCARE India Digital Service Pass"
+          title="Just24You India Digital Service Pass"
           subtitle="Scan with any UPI or QR scanner app to verify booking & payment"
-          initialValue="ROCARE-INDIA:SR-2026-08114:PASS-5812:KOLKATA"
+          initialValue="Just24You-INDIA:SR-2026-08114:PASS-5812:KOLKATA"
         />
       )}
 
@@ -698,7 +698,7 @@ export function LandingPage() {
             </div>
           </div>
           <p className="text-center text-xs font-medium text-gray-600 dark:text-gray-400 mt-6">
-            © {new Date().getFullYear()} ROCARE India Services Pvt. Ltd. (rocareindia.com). All rights reserved.
+            © {new Date().getFullYear()} Just24You India Services Pvt. Ltd. (just24youindia.com). All rights reserved.
           </p>
         </div>
       </footer>

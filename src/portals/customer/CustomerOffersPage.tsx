@@ -27,7 +27,7 @@ interface Voucher {
 const DEFAULT_COUPONS: Coupon[] = [
   {
     id: "c-1",
-    code: "ROCARE500",
+    code: "JUST24YOU500",
     discountType: "FLAT",
     discountValue: 500,
     minOrderAmount: 4999,
@@ -122,7 +122,7 @@ export function CustomerOffersPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="ROCARE India Store"
+        eyebrow="Just24You India Store"
         title="Offers &amp; Coupon Rewards"
         description="Exclusive instant discount vouchers, seasonal appliance codes, and reward coupons."
         action={
@@ -161,7 +161,7 @@ export function CustomerOffersPage() {
           <form onSubmit={handleRedeemVoucher} className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="e.g. ROCARE-GIFT-990"
+              placeholder="e.g. Just24You-GIFT-990"
               value={voucherCodeInput}
               onChange={(e) => setVoucherCodeInput(e.target.value)}
               className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-gray-900 dark:text-white focus:border-[#0f766e] focus:outline-none"

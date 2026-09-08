@@ -129,7 +129,7 @@ export function StaffLoginPage() {
           </div>
 
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            ROCARE ADMIN PORTAL
+            Just24You ADMIN PORTAL
           </h1>
           <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1">
             {step === 1 ? "Select your administrative authorization role" : `Signing in as ${role === "SADMIN" ? "Super Admin" : "Branch Admin"}`}
@@ -265,7 +265,7 @@ export function StaffLoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={role === "SADMIN" ? "superadmin@rocare.in" : "admin.dunlop@rocare.in"}
+                    placeholder={role === "SADMIN" ? "superadmin@just24you.in" : "admin.dunlop@just24you.in"}
                     className="w-full rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3 pl-10 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
@@ -360,7 +360,7 @@ export function StaffLoginPage() {
 
         {/* Footer Security Badge */}
         <div className="mt-6 text-center text-slate-500 text-xs font-medium">
-          🔒 ROCARE Administrative Security Gateway • Encrypted Access
+          🔒 Just24You Administrative Security Gateway • Encrypted Access
         </div>
       </div>
 
@@ -394,7 +394,7 @@ export function StaffLoginPage() {
 
               <div className="rounded-xl bg-slate-800/60 p-3 border border-slate-700/50 space-y-2">
                 <p className="font-bold text-white">Master IT Helpdesk:</p>
-                <p className="font-mono text-blue-400">admin-support@rocare.in</p>
+                <p className="font-mono text-blue-400">admin-support@just24you.in</p>
                 <p className="font-mono text-slate-400">+91 90516 07464 (HQ Desk)</p>
               </div>
             </div>

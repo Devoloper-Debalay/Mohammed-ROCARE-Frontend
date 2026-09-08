@@ -46,7 +46,7 @@ export function SuperAdminReportsPage() {
 
       if (rRes.status === "fulfilled" && rRes.value.data?.data) {
         const raw = rRes.value.data.data;
-        // Check if raw has dashboard/paymentSummary structure from ROCARE backend
+        // Check if raw has dashboard/paymentSummary structure from Just24You backend
         const db = raw.dashboard || {};
         const ps = raw.paymentSummary || {};
 
@@ -92,7 +92,7 @@ export function SuperAdminReportsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `ROCARE_Executive_Report_${dateRange}.csv`);
+    link.setAttribute("download", `Just24You_Executive_Report_${dateRange}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

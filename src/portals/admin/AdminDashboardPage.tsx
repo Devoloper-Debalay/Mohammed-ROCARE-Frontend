@@ -400,7 +400,7 @@ export function AdminDashboardPage() {
           onClose={() => setShowFleetRadar(false)}
           serviceId="SR-KOL-ADMIN-RADAR"
           serviceTitle="Kolkata Fleet Dispatch Command Radar"
-          technicianName="Subhashish Roy (RO Care India Certified Vendor)"
+          technicianName="Subhashish Roy (Just24You India Certified Vendor)"
           customerAddress="Behala & Dunlop Hub Coverage Area"
         />
       )}

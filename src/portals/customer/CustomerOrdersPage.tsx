@@ -44,7 +44,7 @@ const statusTone: Record<string, "teal" | "gold" | "success" | "danger" | "neutr
 
 const DEFAULT_ORDERS: Order[] = [
   {
-    id: "ROCARE-ORD-88219",
+    id: "Just24You-ORD-88219",
     orderType: "PRODUCT",
     status: "DISPATCHED",
     totalAmount: "14,999",
@@ -58,19 +58,19 @@ const DEFAULT_ORDERS: Order[] = [
         unitPrice: "14,999",
         product: {
           id: "ro-101",
-          name: "ROCARE AquaMatrix 10-Stage Copper RO Purifier",
+          name: "Just24You AquaMatrix 10-Stage Copper RO Purifier",
           images: ["https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=300&q=80"],
         },
       },
     ],
     vendor: {
       id: "v-88",
-      name: "Subhashish Roy (ROCARE Logistics Hub)",
+      name: "Subhashish Roy (Just24You Logistics Hub)",
       phone: "+91 90516 07464",
     },
   },
   {
-    id: "ROCARE-ORD-77102",
+    id: "Just24You-ORD-77102",
     orderType: "PRODUCT",
     status: "COMPLETED",
     totalAmount: "1,850",
@@ -180,7 +180,7 @@ export function CustomerOrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="ROCARE Customer Account"
+        eyebrow="Just24You Customer Account"
         title="Your Orders &amp; Deliveries"
         description="Monitor appliance shipments, view 5-stage dispatch timelines, and track technician arrival on Google Maps."
         action={
@@ -198,7 +198,7 @@ export function CustomerOrdersPage() {
           onClose={() => setActiveTrackingOrder(null)}
           serviceId={`ORD-${activeTrackingOrder.id.slice(0, 8)}`}
           serviceTitle={`Delivery Dispatch · ${activeTrackingOrder.orderType}`}
-          vendorName={activeTrackingOrder.vendor?.name || "Subhashish Roy (ROCARE Logistics Hub)"}
+          vendorName={activeTrackingOrder.vendor?.name || "Subhashish Roy (Just24You Logistics Hub)"}
           vendorPhone={activeTrackingOrder.vendor?.phone || "+91 90516 07464"}
           initialStage={activeTrackingOrder.status}
         />
@@ -400,7 +400,7 @@ export function CustomerOrdersPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-gray-900 dark:text-white">
-                            {item.product?.name || "ROCARE Certified Appliance"}
+                            {item.product?.name || "Just24You Certified Appliance"}
                           </p>
                           <p className="text-[11px] text-gray-500">Qty: {item.quantity} · Price: ₹{item.unitPrice}</p>
                         </div>

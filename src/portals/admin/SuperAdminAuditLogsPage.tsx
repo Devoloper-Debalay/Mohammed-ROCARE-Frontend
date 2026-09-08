@@ -14,11 +14,11 @@ interface AuditLog {
 }
 
 const DEFAULT_LOGS: AuditLog[] = [
-  { id: "AUD-89101", action: "VENDOR_KYC_VERIFIED", entityType: "VENDOR", actorId: "adm-1", actorEmail: "superadmin@rocare.in", ipAddress: "103.220.12.8", createdAt: new Date().toISOString(), details: "Approved Subhashish Roy (VND-DUNLOP-01)" },
-  { id: "AUD-89102", action: "WALLET_CREDIT_ADJUSTED", entityType: "WALLET", actorId: "adm-2", actorEmail: "kolkata.admin@rocare.in", ipAddress: "103.220.12.9", createdAt: new Date(Date.now() - 3600000).toISOString(), details: "Credited 500 coins to Tanmoy Mukherjee" },
-  { id: "AUD-89103", action: "ORDER_STATUS_DISPATCHED", entityType: "ORDER", actorId: "adm-2", actorEmail: "kolkata.admin@rocare.in", ipAddress: "103.220.12.9", createdAt: new Date(Date.now() - 7200000).toISOString(), details: "Dispatched Order #ORD-9021 with R32 Gas" },
-  { id: "AUD-89104", action: "BRANCH_CONFIG_UPDATED", entityType: "BRANCH", actorId: "adm-1", actorEmail: "superadmin@rocare.in", ipAddress: "103.220.12.8", createdAt: new Date(Date.now() - 14400000).toISOString(), details: "Updated Salt Lake Hub dispatch radius to 25 KM" },
-  { id: "AUD-89105", action: "ADMIN_LOGIN_SUCCESS", entityType: "SECURITY", actorId: "adm-1", actorEmail: "superadmin@rocare.in", ipAddress: "103.220.12.8", createdAt: new Date(Date.now() - 28800000).toISOString(), details: "Authenticated from Kolkata Static IP" },
+  { id: "AUD-89101", action: "VENDOR_KYC_VERIFIED", entityType: "VENDOR", actorId: "adm-1", actorEmail: "superadmin@just24you.in", ipAddress: "103.220.12.8", createdAt: new Date().toISOString(), details: "Approved Subhashish Roy (VND-DUNLOP-01)" },
+  { id: "AUD-89102", action: "WALLET_CREDIT_ADJUSTED", entityType: "WALLET", actorId: "adm-2", actorEmail: "kolkata.admin@just24you.in", ipAddress: "103.220.12.9", createdAt: new Date(Date.now() - 3600000).toISOString(), details: "Credited 500 coins to Tanmoy Mukherjee" },
+  { id: "AUD-89103", action: "ORDER_STATUS_DISPATCHED", entityType: "ORDER", actorId: "adm-2", actorEmail: "kolkata.admin@just24you.in", ipAddress: "103.220.12.9", createdAt: new Date(Date.now() - 7200000).toISOString(), details: "Dispatched Order #ORD-9021 with R32 Gas" },
+  { id: "AUD-89104", action: "BRANCH_CONFIG_UPDATED", entityType: "BRANCH", actorId: "adm-1", actorEmail: "superadmin@just24you.in", ipAddress: "103.220.12.8", createdAt: new Date(Date.now() - 14400000).toISOString(), details: "Updated Salt Lake Hub dispatch radius to 25 KM" },
+  { id: "AUD-89105", action: "ADMIN_LOGIN_SUCCESS", entityType: "SECURITY", actorId: "adm-1", actorEmail: "superadmin@just24you.in", ipAddress: "103.220.12.8", createdAt: new Date(Date.now() - 28800000).toISOString(), details: "Authenticated from Kolkata Static IP" },
 ];
 
 export function SuperAdminAuditLogsPage() {

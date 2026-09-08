@@ -7,6 +7,7 @@ export interface NavItem {
   to: string;
   label: string;
   icon: ReactNode;
+  badge?: number;
 }
 
 interface PortalShellProps {
@@ -59,7 +60,12 @@ export function PortalShell({ navItems, accent, portalLabel, userLabel, userMeta
               }
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {!!item.badge && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
+                  {item.badge > 9 ? "9+" : item.badge}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

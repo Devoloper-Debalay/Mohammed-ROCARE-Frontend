@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { AdminLteCard, AdminLteSmallBox, AdminLteTable, AdminLteModal } from "@/components/adminlte/AdminLteComponents";
 import { adminApi, unwrapList } from "@/lib/apiClient";
 import { API_BASE_URL } from "@/lib/env";
+import { SPECIALIZATIONS } from "@/components/ui/SpecializationPicker";
 
 export interface VendorSummary {
   id: string;
@@ -10,6 +11,7 @@ export interface VendorSummary {
   vendorCode?: string;
   role?: string;
   specialization?: string;
+  specializations?: string[];
 }
 
 export interface ServiceSummary {
@@ -112,6 +114,8 @@ export function AdminLeadsPage() {
     address: "",
     area: "",
     pincode: "",
+    district: "",
+    specialization: "",
     serviceType: "RO Installation",
     estimatedAmount: "600",
     leadAcceptanceCharge: "10",
@@ -491,7 +495,9 @@ export function AdminLeadsPage() {
         phone: newLead.phone,
         address: newLead.address,
         area: newLead.area || newLead.address,
-        pincode: newLead.pincode || undefined,
+        pincode: newLead.pincode,
+        district: newLead.district,
+        specialization: newLead.specialization,
         serviceType: newLead.serviceType,
         estimatedAmount: Number(newLead.estimatedAmount) || 600,
         leadAcceptanceCharge: Number(newLead.leadAcceptanceCharge) || 10,
@@ -511,6 +517,8 @@ export function AdminLeadsPage() {
         address: "",
         area: "",
         pincode: "",
+        district: "",
+        specialization: "",
         serviceType: "RO Installation",
         estimatedAmount: "600",
         leadAcceptanceCharge: "10",
@@ -524,6 +532,21 @@ export function AdminLeadsPage() {
       setTimeout(() => setToast(""), 4000);
     }
   };
+
+  // Custom trades vendors have registered beyond the 5 standard ones — surfaced
+  // as extra datalist suggestions so admins can actually see and pick them
+  // (typing a custom trade blind, with no idea it exists, is how leads silently
+  // never match anyone).
+  const knownSpecializationValues = useMemo(() => new Set<string>(SPECIALIZATIONS.map((s) => s.value)), []);
+  const customVendorSpecializations = useMemo(() => {
+    const set = new Set<string>();
+    for (const v of vendors) {
+      for (const s of v.specializations || []) {
+        if (s && !knownSpecializationValues.has(s)) set.add(s);
+      }
+    }
+    return Array.from(set).sort();
+  }, [vendors, knownSpecializationValues]);
 
   // Status Counts
   const newLeadsCount = leads.filter((l) => l.status === "NEW").length;
@@ -1494,7 +1517,7 @@ export function AdminLeadsPage() {
               >
                 {vendors.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.fullName} ({v.phone || "No phone"}) - {v.specialization || "RO Tech"}
+                    {v.fullName} ({v.phone || "No phone"}) - {v.specializations?.join(", ") || v.specialization || "RO Tech"}
                   </option>
                 ))}
               </select>
@@ -1566,7 +1589,62 @@ export function AdminLeadsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Service Type / Issue</label>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Pincode</label>
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  value={newLead.pincode}
+                  onChange={(e) => setNewLead({ ...newLead, pincode: e.target.value })}
+                  placeholder="e.g. 380015"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[10px] text-gray-500">Required — this is how nearby vendors get matched to this lead.</p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">District / City</label>
+                <input
+                  type="text"
+                  required
+                  value={newLead.district}
+                  onChange={(e) => setNewLead({ ...newLead, district: e.target.value })}
+                  placeholder="e.g. Ahmedabad"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Appliance / Specialization Required</label>
+                <input
+                  type="text"
+                  required
+                  list="lead-specialization-options"
+                  value={newLead.specialization}
+                  onChange={(e) => setNewLead({ ...newLead, specialization: e.target.value })}
+                  placeholder="Pick a trade, or type a custom one"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
+                />
+                <datalist id="lead-specialization-options">
+                  {SPECIALIZATIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                  {customVendorSpecializations.map((s) => (
+                    <option key={s} value={s}>
+                      {s} (custom trade)
+                    </option>
+                  ))}
+                </datalist>
+                <p className="mt-1 text-[10px] text-gray-500">
+                  Must exactly match a vendor's registered specialization. Click the field to see standard trades plus any custom
+                  trades vendors have already added.
+                </p>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Service Type / Issue (shown to the vendor)</label>
                 <input
                   type="text"
                   required
@@ -1613,7 +1691,7 @@ export function AdminLeadsPage() {
                   <option value="">-- Open Pool (Broadcast to Area) --</option>
                   {vendors.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.fullName} ({v.phone || "No phone"}) - {v.specialization || "Tech"}
+                      {v.fullName} ({v.phone || "No phone"}) - {v.specializations?.join(", ") || v.specialization || "Tech"}
                     </option>
                   ))}
                 </select>
@@ -1697,8 +1775,11 @@ export function AdminLeadsPage() {
               </div>
             )}
             <div className="mt-3 font-mono flex flex-wrap items-center justify-center gap-4 text-xs">
-              <span className="text-emerald-700 dark:text-emerald-400 font-bold">
-                📍 Coordinates: {selectedProof.latitude?.toFixed(5) || "22.57264"}, {selectedProof.longitude?.toFixed(5) || "88.36389"}
+              <span className={selectedProof.latitude != null && selectedProof.longitude != null ? "text-emerald-700 dark:text-emerald-400 font-bold" : "text-gray-500 font-bold"}>
+                📍{" "}
+                {selectedProof.latitude != null && selectedProof.longitude != null
+                  ? `Coordinates: ${selectedProof.latitude.toFixed(5)}, ${selectedProof.longitude.toFixed(5)}`
+                  : "No GPS coordinates were captured with this submission."}
               </span>
               {selectedProof.reason && (
                 <span className="text-rose-600 dark:text-rose-400 font-bold">

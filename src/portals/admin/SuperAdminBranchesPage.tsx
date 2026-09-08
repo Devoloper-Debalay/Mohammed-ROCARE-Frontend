@@ -15,7 +15,7 @@ interface Branch {
 }
 
 const DEFAULT_BRANCHES: Branch[] = [
-  { id: "br-1", code: "KOL-DUNLOP", name: "RO Care India Dunlop Hub", city: "Baranagar, Kolkata", state: "West Bengal", pincode: "700108", phone: "+91 93115 87744", address: "2, Dilip Ganguly Sarani, Dunlop, Baranagar", isActive: true },
+  { id: "br-1", code: "KOL-DUNLOP", name: "Just24You India Dunlop Hub", city: "Baranagar, Kolkata", state: "West Bengal", pincode: "700108", phone: "+91 93115 87744", address: "2, Dilip Ganguly Sarani, Dunlop, Baranagar", isActive: true },
   { id: "br-2", code: "KOL-SALT", name: "Salt Lake Sector 1 Hub", city: "Bidhannagar, Kolkata", state: "West Bengal", pincode: "700064", phone: "+91 98302 11982", address: "Block AB, Sector 1, Salt Lake", isActive: true },
   { id: "br-3", code: "KOL-BEHALA", name: "South Kolkata Hub", city: "Behala, Kolkata", state: "West Bengal", pincode: "700034", phone: "+91 98308 44012", address: "Diamond Harbour Rd, Behala Chowrasta", isActive: true },
   { id: "br-4", code: "HOW-CENTRAL", name: "Howrah Station Hub", city: "Howrah", state: "West Bengal", pincode: "711101", phone: "+91 98300 77123", address: "Station Road, Howrah", isActive: true },

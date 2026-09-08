@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { DemoQrGenerator } from "@/components/qr/DemoQrGenerator";
-import { customerApi, unwrapList } from "@/lib/apiClient";
+import { customerApi, unwrapList, getErrorMessage } from "@/lib/apiClient";
+import { openRazorpayCheckout } from "@/lib/razorpay";
+import { useCustomerAuth } from "@/store/authStore";
 
 interface CartProduct {
   id: string;
@@ -54,7 +55,7 @@ export function CustomerCartPage() {
 
   // Payment method selection
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "CARD" | "COD">("UPI");
-  const [showUpiQrModal, setShowUpiQrModal] = useState(false);
+  const { user } = useCustomerAuth();
 
   // New address modal
   const [showAddAddressModal, setShowAddAddressModal] = useState(false);
@@ -148,9 +149,9 @@ export function CustomerCartPage() {
     } catch (err: any) {
       // Friendly simulation if code is standard
       const upper = couponCode.toUpperCase().trim();
-      if (upper === "ROCARE500") {
-        setAppliedCoupon({ code: "ROCARE500", discountAmount: 500 });
-        setCouponMessage({ type: "success", text: "✓ Coupon ROCARE500 applied! Saved ₹500" });
+      if (upper === "JUST24YOU500") {
+        setAppliedCoupon({ code: "JUST24YOU500", discountAmount: 500 });
+        setCouponMessage({ type: "success", text: "✓ Coupon JUST24YOU500 applied! Saved ₹500" });
       } else if (upper === "SUMMERCOOL") {
         const disc = Math.min(2500, Math.round(rawTotal * 0.15));
         setAppliedCoupon({ code: "SUMMERCOOL", discountAmount: disc });
@@ -161,7 +162,7 @@ export function CustomerCartPage() {
       } else {
         setCouponMessage({
           type: "error",
-          text: err?.response?.data?.message || "Invalid or expired coupon code. Try 'ROCARE500'.",
+          text: err?.response?.data?.message || "Invalid or expired coupon code. Try 'JUST24YOU500'.",
         });
       }
     } finally {
@@ -211,25 +212,56 @@ export function CustomerCartPage() {
       // 1. Place order via backend
       const orderRes = await customerApi.post("/orders/checkout", { deliveryAddress });
       const order = orderRes.data?.data;
-      const orderId = order?.id || `ORD-${Date.now().toString().slice(-6)}`;
+      const orderId = order?.id;
+      if (!orderId) throw new Error("Couldn't place the order. Try again.");
 
-      // 2. Initiate payment
+      // 2. Cash on delivery needs no payment step.
       if (paymentMethod === "COD") {
         setPaidOrderId(orderId);
-      } else {
-        const paymentRes = await customerApi.post("/payments/create-order", {
-          amount: finalTotal,
-          orderId,
-        });
-        const paymentId = paymentRes.data?.data?.paymentId || `PAY-${Date.now().toString().slice(-6)}`;
-
-        // 3. Verify payment
-        await customerApi.post("/payments/verify", { paymentId });
-        setPaidOrderId(orderId);
+        setCheckingOut(false);
+        return;
       }
-    } catch {
-      // Resilient fallback order completion
-      setPaidOrderId(`ROCARE-ORD-${Math.floor(100000 + Math.random() * 900000)}`);
+
+      // 3. Real Razorpay order + checkout for UPI / Card / Netbanking.
+      const paymentRes = await customerApi.post("/payments/create-order", {
+        amount: finalTotal,
+        orderId,
+      });
+      const paymentOrder = paymentRes.data?.data ?? paymentRes.data;
+
+      await openRazorpayCheckout({
+        key: paymentOrder.keyId,
+        amount: Math.round(paymentOrder.amount * 100),
+        currency: paymentOrder.currency,
+        order_id: paymentOrder.orderId,
+        name: "Just24You India",
+        description: "Appliance order payment",
+        prefill: {
+          name: user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : user?.name,
+          contact: user?.phone,
+          email: user?.email,
+        },
+        theme: { color: "#0f766e" },
+        handler: async (response) => {
+          try {
+            await customerApi.post("/payments/verify", {
+              paymentId: paymentOrder.paymentId,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            setPaidOrderId(orderId);
+          } catch (err) {
+            setError(getErrorMessage(err, "Payment received but verification failed. Contact support with your order ID."));
+          } finally {
+            setCheckingOut(false);
+          }
+        },
+        modal: { ondismiss: () => setCheckingOut(false) },
+      });
+      return;
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't complete checkout. Try again."));
     } finally {
       setCheckingOut(false);
     }
@@ -239,7 +271,7 @@ export function CustomerCartPage() {
   if (paidOrderId) {
     return (
       <div className="py-6">
-        <PageHeader eyebrow="ROCARE India Store" title="Order Confirmation" />
+        <PageHeader eyebrow="Just24You India Store" title="Order Confirmation" />
         <Card className="p-8 md:p-10 text-center border border-gray-200 dark:border-gray-800 shadow-2xl max-w-xl mx-auto rounded-3xl">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 mx-auto text-4xl font-bold mb-4 shadow-inner">
             ✓
@@ -251,7 +283,7 @@ export function CustomerCartPage() {
             Order #{paidOrderId.slice(0, 10)} Placed!
           </h2>
           <p className="mt-2 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed">
-            Your appliance order has been dispatched to the nearest ROCARE authorized logistics branch. An expert certified technician will deliver and execute free unboxing and setup.
+            Your appliance order has been dispatched to the nearest Just24You authorized logistics branch. An expert certified technician will deliver and execute free unboxing and setup.
           </p>
 
           <div className="mt-6 rounded-2xl bg-gray-50 dark:bg-gray-800/60 p-4 border border-gray-200 dark:border-gray-700 text-left text-xs space-y-2">
@@ -294,7 +326,7 @@ export function CustomerCartPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="ROCARE India Shopping Bag"
+        eyebrow="Just24You India Shopping Bag"
         title="Your Appliance Cart"
         description="Review items, apply discount vouchers, choose doorstep address, and checkout securely."
         action={
@@ -303,18 +335,6 @@ export function CustomerCartPage() {
           </Button>
         }
       />
-
-      {/* Dynamic UPI QR Code Payment Modal */}
-      {showUpiQrModal && (
-        <DemoQrGenerator
-          isModal
-          isOpen={showUpiQrModal}
-          onClose={() => setShowUpiQrModal(false)}
-          title={`Pay ₹${finalTotal.toLocaleString("en-IN")} via UPI`}
-          subtitle="Scan with Google Pay, PhonePe, Paytm, or BHIM to complete instant verification"
-          initialValue={`upi://pay?pa=rocare.india@icici&pn=ROCARE+Appliance+Care&am=${finalTotal}&cu=INR&tn=ROCARE-ORDER`}
-        />
-      )}
 
       {/* Inline Add Address Modal */}
       {showAddAddressModal && (
@@ -436,7 +456,7 @@ export function CustomerCartPage() {
                         <p className="font-mono text-base font-extrabold text-[#0f766e] dark:text-teal-400 mt-1">
                           ₹{price.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-[10px] text-emerald-600 font-semibold">In Stock · 1-Year ROCARE Warranty</p>
+                        <p className="text-[10px] text-emerald-600 font-semibold">In Stock · 1-Year Just24You Warranty</p>
                       </div>
                     </div>
 
@@ -530,7 +550,7 @@ export function CustomerCartPage() {
                 <div className="mt-1.5 flex gap-2">
                   <input
                     type="text"
-                    placeholder="e.g. ROCARE500"
+                    placeholder="e.g. JUST24YOU500"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider text-gray-900 dark:text-white focus:border-[#0f766e] focus:outline-none"
@@ -677,23 +697,10 @@ export function CustomerCartPage() {
                 >
                   Pay ₹{finalTotal.toLocaleString("en-IN")} &amp; Place Order
                 </Button>
-
-                {paymentMethod === "UPI" && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    accent="teal"
-                    fullWidth
-                    onClick={() => setShowUpiQrModal(true)}
-                    className="font-bold !py-2.5 text-xs"
-                  >
-                    📱 Scan &amp; Pay via UPI QR
-                  </Button>
-                )}
               </div>
 
               <p className="mt-4 text-center text-[10px] text-gray-500 font-medium leading-normal">
-                🔒 256-Bit SSL Encrypted · ROCARE Certified Guarantee
+                🔒 256-Bit SSL Encrypted · Just24You Certified Guarantee
               </p>
             </Card>
           </div>

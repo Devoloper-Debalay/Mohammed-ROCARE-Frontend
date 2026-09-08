@@ -3,7 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { KycStatusModal } from "@/components/ui/KycStatusModal";
 import { vendorApi, unwrapList } from "@/lib/apiClient";
+import { useVendorAuth, isVendorApproved } from "@/store/authStore";
 
 interface Item {
   id: string;
@@ -60,6 +62,9 @@ export function VendorProductsPage() {
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const { user } = useVendorAuth();
+  const approved = isVendorApproved(user);
+  const [showKycModal, setShowKycModal] = useState(false);
 
   useEffect(() => {
     const qTab = searchParams.get("tab");
@@ -91,6 +96,10 @@ export function VendorProductsPage() {
   useEffect(load, []);
 
   const buy = async (id: string) => {
+    if (!approved) {
+      setShowKycModal(true);
+      return;
+    }
     setBuyingId(id);
     try {
       if (tab === "products") {
@@ -153,6 +162,13 @@ export function VendorProductsPage() {
           }
         />
       )}
+
+      <KycStatusModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        verificationStatus={user?.verificationStatus}
+        profileStatus={user?.profileStatus}
+      />
     </div>
   );
 }

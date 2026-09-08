@@ -4,9 +4,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, Badge } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { vendorApi } from "@/lib/apiClient";
+import { vendorApi, getErrorMessage } from "@/lib/apiClient";
 import { API_BASE_URL } from "@/lib/env";
 import { useVendorAuth } from "@/store/authStore";
+import { SpecializationPicker } from "@/components/ui/SpecializationPicker";
 
 export interface VendorKYC {
   aadhaarNumber?: string;
@@ -31,6 +32,7 @@ export interface VendorProfileData {
   profilePhoto?: string;
   role: string;
   specialization?: string;
+  specializations?: string[];
   experienceYears?: number;
   skills?: string[] | string;
   address?: string;
@@ -39,6 +41,7 @@ export interface VendorProfileData {
   pincode?: string;
   verificationStatus: "PENDING" | "VERIFIED" | "REJECTED" | string;
   profileStatus: "DRAFT" | "UNDER_REVIEW" | "PUBLISHED" | "BLOCKED" | string;
+  rejectionReason?: string | null;
   branchId?: string;
   branch?: {
     id: string;
@@ -57,12 +60,15 @@ export interface VendorProfileData {
 }
 
 export function VendorProfilePage() {
-  const { user, setSession } = useVendorAuth();
+  const { user, updateUser } = useVendorAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<VendorProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingBank, setSavingBank] = useState(false);
+  const [savingKyc, setSavingKyc] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -70,7 +76,6 @@ export function VendorProfilePage() {
     fullName: "",
     email: "",
     phone: "",
-    specialization: "RO & Water Purifier",
     experienceYears: "5",
     skills: "RO Membrane Replacement, TDS Calibration, Inverter AC Service, Geyser Coil Replacement",
     address: "",
@@ -81,6 +86,10 @@ export function VendorProfilePage() {
     ifsc: "",
     upiId: "",
   });
+
+  const [specializations, setSpecializations] = useState<string[]>(["RO & Water Purifier"]);
+
+  const [kycForm, setKycForm] = useState({ aadhaarNumber: "", panNumber: "" });
 
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [copiedReferral, setCopiedReferral] = useState(false);
@@ -120,11 +129,14 @@ export function VendorProfilePage() {
             ? data.skills.join(", ")
             : data.skills || "";
 
+          setSpecializations(
+            data.specializations?.length ? data.specializations : data.specialization ? [data.specialization] : ["RO & Water Purifier"]
+          );
+
           setForm({
             fullName: data.fullName || user?.fullName || "",
             email: data.email || "",
             phone: data.phone || user?.phone || "",
-            specialization: data.specialization || "RO & Water Purifier Specialist",
             experienceYears: String(data.experienceYears || 5),
             skills: skillsText,
             address: data.address || "",
@@ -134,6 +146,11 @@ export function VendorProfilePage() {
             bankAccount: data.bankDetail?.bankAccount || "",
             ifsc: data.bankDetail?.ifsc || "",
             upiId: data.bankDetail?.upiId || "",
+          });
+
+          setKycForm({
+            aadhaarNumber: data.kyc?.aadhaarNumber || "",
+            panNumber: data.kyc?.panNumber || "",
           });
 
           if (data.profilePhoto) {
@@ -217,6 +234,11 @@ export function VendorProfilePage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (specializations.length === 0) {
+      setToast({ msg: "Select at least one specialization before saving.", type: "error" });
+      setTimeout(() => setToast(null), 3500);
+      return;
+    }
     setSaving(true);
     setToast(null);
 
@@ -229,18 +251,13 @@ export function VendorProfilePage() {
       fullName: form.fullName,
       email: form.email || undefined,
       phone: form.phone,
-      specialization: form.specialization,
+      specializations,
       experienceYears: Number(form.experienceYears) || 0,
       skills: skillsArray,
       address: form.address,
       city: form.city,
       state: form.state,
       pincode: form.pincode,
-      bankDetail: {
-        bankAccount: form.bankAccount,
-        ifsc: form.ifsc,
-        upiId: form.upiId,
-      },
     };
 
     try {
@@ -249,19 +266,79 @@ export function VendorProfilePage() {
       if (updated) {
         setProfile((prev) => ({ ...prev, ...updated }));
         if (user) {
-          setSession({ user: { ...user, fullName: updated.fullName || form.fullName } });
+          updateUser({ fullName: updated.fullName || form.fullName } as Partial<typeof user>);
         }
       }
-      setToast({ msg: "✓ Profile & KYC information updated successfully.", type: "success" });
+      setToast({ msg: "✓ Profile details updated successfully.", type: "success" });
       setTimeout(() => setToast(null), 3500);
-    } catch (err: any) {
-      setToast({
-        msg: err?.response?.data?.message ?? "Profile changes saved.",
-        type: "success",
-      });
+    } catch (err) {
+      setToast({ msg: getErrorMessage(err, "Couldn't save profile changes."), type: "error" });
       setTimeout(() => setToast(null), 3500);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveBankDetails = async (e: FormEvent) => {
+    e.preventDefault();
+    setSavingBank(true);
+    setToast(null);
+    try {
+      const res = await vendorApi.put("/vendor/bank-details", {
+        vendorCode: profile?.vendorCode || user?.vendorCode || "",
+        bankAccount: form.bankAccount,
+        ifsc: form.ifsc,
+        upiId: form.upiId || undefined,
+      });
+      const updated = res.data?.data ?? res.data;
+      if (updated) setProfile((prev) => (prev ? { ...prev, ...updated } : prev));
+      setToast({ msg: "✓ Bank & UPI details saved.", type: "success" });
+    } catch (err) {
+      setToast({ msg: getErrorMessage(err, "Couldn't save bank details."), type: "error" });
+    } finally {
+      setSavingBank(false);
+      setTimeout(() => setToast(null), 3500);
+    }
+  };
+
+  const saveKyc = async (e: FormEvent) => {
+    e.preventDefault();
+    setSavingKyc(true);
+    setToast(null);
+    try {
+      const res = await vendorApi.put("/vendor/kyc", {
+        vendorCode: profile?.vendorCode || user?.vendorCode || "",
+        aadhaarNumber: kycForm.aadhaarNumber || undefined,
+        panNumber: kycForm.panNumber || undefined,
+      });
+      const updated = res.data?.data ?? res.data;
+      if (updated) setProfile((prev) => (prev ? { ...prev, ...updated } : prev));
+      setToast({ msg: "✓ KYC details saved.", type: "success" });
+    } catch (err) {
+      setToast({ msg: getErrorMessage(err, "Couldn't save KYC details."), type: "error" });
+    } finally {
+      setSavingKyc(false);
+      setTimeout(() => setToast(null), 3500);
+    }
+  };
+
+  const submitForVerification = async () => {
+    setSubmitting(true);
+    setToast(null);
+    try {
+      const res = await vendorApi.post("/vendor/submit-for-verification");
+      const updated = res.data?.data ?? res.data;
+      if (updated) setProfile((prev) => (prev ? { ...prev, ...updated } : prev));
+      setToast({ msg: "✓ Submitted for admin verification. You'll be notified once reviewed.", type: "success" });
+      loadProfile();
+    } catch (err) {
+      setToast({
+        msg: getErrorMessage(err, "Couldn't submit for verification. Complete your KYC and bank details first."),
+        type: "error",
+      });
+    } finally {
+      setSubmitting(false);
+      setTimeout(() => setToast(null), 4500);
     }
   };
 
@@ -356,25 +433,8 @@ export function VendorProfilePage() {
                   type="email"
                   value={form.email}
                   onChange={handleInputChange("email")}
-                  placeholder="e.g. technician@rocare.in"
+                  placeholder="e.g. technician@just24you.in"
                 />
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                    Specialization
-                  </label>
-                  <select
-                    value={form.specialization}
-                    onChange={handleInputChange("specialization")}
-                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-orange-500"
-                  >
-                    <option value="RO & Water Purifier">RO &amp; Water Purifier Specialist</option>
-                    <option value="Inverter Split AC">Inverter Split AC Technician</option>
-                    <option value="Refrigerator & Freezers">Refrigerator &amp; Freezers Specialist</option>
-                    <option value="Storage & Instant Geyser">Storage &amp; Instant Geyser Tech</option>
-                    <option value="Multi-Appliance Expert">Multi-Appliance Doorstep Expert</option>
-                  </select>
-                </div>
 
                 <Input
                   label="Experience (Years)"
@@ -385,6 +445,13 @@ export function VendorProfilePage() {
                   onChange={handleInputChange("experienceYears")}
                   placeholder="e.g. 5"
                 />
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Specializations
+                  </label>
+                  <SpecializationPicker value={specializations} onChange={setSpecializations} accent="orange" />
+                </div>
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
@@ -434,33 +501,6 @@ export function VendorProfilePage() {
                 </div>
               </div>
 
-              {/* Payout & Bank Details Section */}
-              <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                  Bank Account &amp; UPI Payout Details
-                </h4>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <Input
-                    label="Bank Account Number"
-                    value={form.bankAccount}
-                    onChange={handleInputChange("bankAccount")}
-                    placeholder="e.g. 91823901923"
-                  />
-                  <Input
-                    label="IFSC Code"
-                    value={form.ifsc}
-                    onChange={handleInputChange("ifsc")}
-                    placeholder="e.g. ICIC0001829"
-                  />
-                  <Input
-                    label="UPI ID (GPay / PhonePe)"
-                    value={form.upiId}
-                    onChange={handleInputChange("upiId")}
-                    placeholder="e.g. 9051607464@paytm"
-                  />
-                </div>
-              </div>
-
               {/* Update Button */}
               <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-800">
                 <p className="text-[11px] text-gray-500 font-medium">
@@ -478,13 +518,60 @@ export function VendorProfilePage() {
             </form>
           </Card>
 
-          {/* KYC Document Status Card */}
+          {/* Bank & UPI Payout Details Card */}
+          <Card className="p-6 border border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl">
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-950 text-xl">
+                🏦
+              </span>
+              <div>
+                <h3 className="font-display text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                  Bank Account &amp; UPI Payout Details
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Required before you can submit your profile for admin verification.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={saveBankDetails} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <Input
+                  label="Bank Account Number"
+                  value={form.bankAccount}
+                  onChange={handleInputChange("bankAccount")}
+                  placeholder="e.g. 91823901923"
+                  required
+                />
+                <Input
+                  label="IFSC Code"
+                  value={form.ifsc}
+                  onChange={handleInputChange("ifsc")}
+                  placeholder="e.g. ICIC0001829"
+                  required
+                />
+                <Input
+                  label="UPI ID (GPay / PhonePe)"
+                  value={form.upiId}
+                  onChange={handleInputChange("upiId")}
+                  placeholder="e.g. 9051607464@paytm"
+                />
+              </div>
+              <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                <Button type="submit" accent="orange" loading={savingBank} className="px-6 !py-2.5 font-extrabold text-xs shadow-md">
+                  💾 Save Bank Details
+                </Button>
+              </div>
+            </form>
+          </Card>
+
+          {/* KYC Details Card */}
           <Card className="p-6 border border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl">
             <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🪪</span>
                 <h3 className="font-display text-base font-bold text-gray-900 dark:text-white">
-                  KYC Verification Proofs
+                  KYC Verification Details
                 </h3>
               </div>
               <Badge tone={isVerified ? "success" : "gold"}>
@@ -492,45 +579,64 @@ export function VendorProfilePage() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="rounded-2xl bg-gray-50 dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700">
-                <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <span>📄</span> Aadhaar Card
-                </p>
-                <p className="font-mono mt-1 text-gray-600 dark:text-gray-300">
-                  {profile?.kyc?.aadhaarNumber ? `UID: **** **** ${profile.kyc.aadhaarNumber.slice(-4)}` : "Aadhaar UID on file"}
-                </p>
-                {profile?.kyc?.aadhaarFrontImage && (
-                  <a
-                    href={getMediaUrl(profile.kyc.aadhaarFrontImage)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block text-[11px] font-bold text-orange-600 hover:underline"
-                  >
-                    View Document →
-                  </a>
-                )}
+            {profile?.verificationStatus === "REJECTED" && profile?.rejectionReason && (
+              <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 p-3 text-xs font-semibold text-red-800 dark:text-red-300">
+                ⛔ Rejected: {profile.rejectionReason}. Update your documents below and resubmit.
+              </div>
+            )}
+
+            <form onSubmit={saveKyc} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-gray-50 dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 space-y-3">
+                  <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs">
+                    <span>📄</span> Aadhaar Card
+                  </p>
+                  <Input
+                    label="Aadhaar Number"
+                    value={kycForm.aadhaarNumber}
+                    onChange={(e) => setKycForm((f) => ({ ...f, aadhaarNumber: e.target.value }))}
+                    placeholder="e.g. 1234 5678 9012"
+                    maxLength={12}
+                  />
+                </div>
+
+                <div className="rounded-2xl bg-gray-50 dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 space-y-3">
+                  <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs">
+                    <span>💳</span> PAN Card
+                  </p>
+                  <Input
+                    label="PAN Number"
+                    value={kycForm.panNumber}
+                    onChange={(e) => setKycForm((f) => ({ ...f, panNumber: e.target.value.toUpperCase() }))}
+                    placeholder="e.g. ABCDE1234F"
+                    maxLength={10}
+                  />
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700">
-                <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <span>💳</span> PAN Card
-                </p>
-                <p className="font-mono mt-1 text-gray-600 dark:text-gray-300">
-                  {profile?.kyc?.panNumber ? `PAN: ${profile.kyc.panNumber}` : "PAN card verified"}
-                </p>
-                {profile?.kyc?.panImage && (
-                  <a
-                    href={getMediaUrl(profile.kyc.panImage)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block text-[11px] font-bold text-orange-600 hover:underline"
-                  >
-                    View Document →
-                  </a>
-                )}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <p className="text-[11px] text-gray-500">Reviewed by the admin team.</p>
+                <Button type="submit" accent="orange" loading={savingKyc} className="px-6 !py-2.5 font-extrabold text-xs shadow-md">
+                  📤 Save KYC Details
+                </Button>
               </div>
-            </div>
+            </form>
+
+            {profile?.profileStatus === "DRAFT" && (
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950 border border-amber-300 dark:border-amber-800 p-4">
+                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                  Once your bank details and KYC documents are saved, submit your profile for admin review.
+                </p>
+                <Button accent="orange" loading={submitting} onClick={submitForVerification} className="font-extrabold text-xs !py-2.5">
+                  🚀 Submit for Admin Verification
+                </Button>
+              </div>
+            )}
+            {profile?.profileStatus === "UNDER_REVIEW" && (
+              <div className="mt-5 rounded-2xl bg-blue-50 dark:bg-blue-950 border border-blue-300 dark:border-blue-800 p-4 text-xs font-semibold text-blue-800 dark:text-blue-300">
+                ⏳ Submitted — waiting on admin review.
+              </div>
+            )}
           </Card>
 
           {/* MLM & Partner Downline Network Hub */}
@@ -572,7 +678,7 @@ export function VendorProfilePage() {
                   type="button"
                   onClick={() => {
                     const text = encodeURIComponent(
-                      `Join ROCARE technician partner network with my sponsor code: ${vendorCode.toUpperCase()} to receive bonus wallet coins!`
+                      `Join Just24You technician partner network with my sponsor code: ${vendorCode.toUpperCase()} to receive bonus wallet coins!`
                     );
                     window.open(`https://wa.me/?text=${text}`, "_blank");
                   }}

@@ -123,10 +123,10 @@ export function GeoTaggedCamera({
     ctx.fillStyle = "#0f7a6e";
     ctx.fillRect(0, sHeight - bannerHeight, sWidth, 3);
 
-    // Left Icon / ROCARE Logo Stamp
+    // Left Icon / Just24You Logo Stamp
     ctx.fillStyle = "#00f0ff";
     ctx.font = "bold 16px Inter, sans-serif";
-    ctx.fillText("ROCARE GEOTAG VERIFIED", 20, sHeight - bannerHeight + 24);
+    ctx.fillText("Just24You GEOTAG VERIFIED", 20, sHeight - bannerHeight + 24);
 
     // Geotag Data Text
     ctx.fillStyle = "#f3f4f6";
@@ -255,7 +255,7 @@ export function GeoTaggedCamera({
             />
             {/* Live GPS Stamp Overlay Preview */}
             <div className="pointer-events-none absolute bottom-0 inset-x-0 bg-ink/80 p-2.5 text-[10px] font-mono text-white backdrop-blur-sm">
-              <p className="font-bold text-cyan-300">ROCARE GEOTAG PREVIEW</p>
+              <p className="font-bold text-cyan-300">Just24You GEOTAG PREVIEW</p>
               <p>LAT: {geoInfo.latitude.toFixed(4)} | LNG: {geoInfo.longitude.toFixed(4)}</p>
             </div>
           </>

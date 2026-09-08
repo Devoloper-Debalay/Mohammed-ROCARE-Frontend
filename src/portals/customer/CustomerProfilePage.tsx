@@ -198,7 +198,7 @@ export function CustomerProfilePage() {
 
   const shareOnWhatsApp = () => {
     const text = encodeURIComponent(
-      `Get ₹100 OFF on your first RO Water Purifier or Home Appliance service with ROCARE! Use my referral code: ${referralCode}`
+      `Get ₹100 OFF on your first RO Water Purifier or Home Appliance service with Just24You! Use my referral code: ${referralCode}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -219,7 +219,7 @@ export function CustomerProfilePage() {
           onClose={() => setShowQrModal(false)}
           title="Customer Digital Pass & Verification QR"
           subtitle="Scan this QR code when technician visits your premises"
-          initialValue={`ROCARE-CUSTOMER:${user?.id || "CUST-9012"}:NAME:${form.firstName} ${form.lastName}:PHONE:${form.phone}`}
+          initialValue={`Just24You-CUSTOMER:${user?.id || "CUST-9012"}:NAME:${form.firstName} ${form.lastName}:PHONE:${form.phone}`}
         />
       )}
 

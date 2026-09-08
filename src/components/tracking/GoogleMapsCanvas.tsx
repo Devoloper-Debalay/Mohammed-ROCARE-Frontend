@@ -136,7 +136,7 @@ export function GoogleMapsCanvas({
       ctx.fillText("Baranagar (Dunlop)", width * 0.46, height * 0.12);
       ctx.font = "10px Inter, sans-serif";
       ctx.fillStyle = isDark ? "#9ca3af" : "#5f6368";
-      ctx.fillText("বরাহনগর • RO Care India Hub", width * 0.46, height * 0.15);
+      ctx.fillText("বরাহনগর • Just24You India Hub", width * 0.46, height * 0.15);
 
       // Central Kolkata (Mid Zone)
       ctx.fillStyle = cityLabelColor;
@@ -249,7 +249,7 @@ export function GoogleMapsCanvas({
         }
       }
 
-      // 7. Origin Marker: RO Care India (Dunlop, Baranagar)
+      // 7. Origin Marker: Just24You India (Dunlop, Baranagar)
       const originPt = pts[0];
       if (originPt) {
         ctx.beginPath();
@@ -272,7 +272,7 @@ export function GoogleMapsCanvas({
         ctx.fillStyle = isDark ? "#ffffff" : "#0f172a";
         ctx.font = "bold 9px Inter, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("RO Care India (Dunlop)", originPt.x, originPt.y - 18);
+        ctx.fillText("Just24You India (Dunlop)", originPt.x, originPt.y - 18);
       }
 
       // 8. Destination Marker: Behala (Google Maps Red Teardrop Pin)

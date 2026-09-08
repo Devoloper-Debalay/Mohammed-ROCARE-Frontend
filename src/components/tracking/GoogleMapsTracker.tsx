@@ -16,9 +16,9 @@ interface GoogleMapsTrackerProps {
   isModal?: boolean;
 }
 
-// Exact Baranagar (RO Care India Dunlop) to Behala route coordinates via Central Ave
+// Exact Baranagar (Just24You India Dunlop) to Behala route coordinates via Central Ave
 const EXACT_KOLKATA_ROUTE: GeoPoint[] = [
-  { lat: 22.6520, lng: 88.3760, label: "RO Care India (Dunlop)", street: "RO Care India, 2, Dilip Ganguly sarani, Dunlop, Baranagar" },
+  { lat: 22.6520, lng: 88.3760, label: "Just24You India (Dunlop)", street: "Just24You India, 2, Dilip Ganguly sarani, Dunlop, Baranagar" },
   { lat: 22.6240, lng: 88.3780, label: "BT Road / Sinthee", street: "Head south on Barrackpore Trunk (BT) Rd" },
   { lat: 22.6020, lng: 88.3720, label: "Shyambazar 5-Point", street: "Continue straight past Shyambazar toward Central Ave" },
   { lat: 22.5850, lng: 88.3610, label: "Central Ave / Girish Park", street: "via Central Ave / Chittaranjan Ave (Fastest route)" },
@@ -42,7 +42,7 @@ export function GoogleMapsTracker({
   onClose,
   isModal = false,
 }: GoogleMapsTrackerProps) {
-  const activeVendorName = technicianName || vendorName || "Subhashish Roy (RO Care India Certified Vendor)";
+  const activeVendorName = technicianName || vendorName || "Subhashish Roy (Just24You India Certified Vendor)";
   const [routeIndex, setRouteIndex] = useState(3);
   const [isPlaying, setIsPlaying] = useState(true);
   const [speedMultiplier, setSpeedMultiplier] = useState(1);
@@ -87,7 +87,7 @@ export function GoogleMapsTracker({
             <div className="flex items-center gap-2 text-xs">
               <span className="h-3 w-3 rounded-full border-2 border-blue-600 bg-white" />
               <span className="font-bold text-gray-900 dark:text-white truncate">
-                RO Care India, 2, Dilip Ganguly sarani, Dunlop, Baranagar, Kolkata 700035
+                Just24You India, 2, Dilip Ganguly sarani, Dunlop, Baranagar, Kolkata 700035
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs">

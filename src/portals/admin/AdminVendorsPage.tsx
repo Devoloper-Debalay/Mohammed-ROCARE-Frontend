@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminLteCard, AdminLteSmallBox, AdminLteTable, AdminLteModal } from "@/components/adminlte/AdminLteComponents";
 import { adminApi, unwrapList } from "@/lib/apiClient";
 import { API_BASE_URL } from "@/lib/env";
+import { SpecializationPicker } from "@/components/ui/SpecializationPicker";
 
 export interface VendorKYC {
   id?: string;
@@ -43,6 +44,7 @@ export interface Vendor {
   experienceYears?: number;
   skills: string[];
   specialization?: string;
+  specializations?: string[];
   verificationStatus: "PENDING" | "VERIFIED" | "REJECTED";
   profileStatus: "DRAFT" | "UNDER_REVIEW" | "PUBLISHED" | "BLOCKED" | "DELETED";
   rejectionReason?: string;
@@ -78,11 +80,11 @@ export function AdminVendorsPage() {
     email: "",
     password: "",
     role: "TECHNICIAN" as "TECHNICIAN" | "AGENT",
-    specialization: "RO & Water Purifier",
     experienceYears: "3",
     city: "Kolkata",
     branchId: "",
   });
+  const [newVendorSpecializations, setNewVendorSpecializations] = useState<string[]>(["RO & Water Purifier"]);
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState("");
 
@@ -125,6 +127,10 @@ export function AdminVendorsPage() {
     setActingId(vendorId);
     try {
       await adminApi.patch(`/admin/vendors/${vendorId}/verify`, { approved, rejectionReason: reason });
+      if (approved) {
+        // /verify only sets verificationStatus — profileStatus must be published separately.
+        await adminApi.patch(`/admin/vendors/${vendorId}/publish`);
+      }
       setVendors((prev) =>
         prev.map((v) =>
           v.id === vendorId
@@ -198,15 +204,20 @@ export function AdminVendorsPage() {
 
   const handleCreateVendor = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newVendorSpecializations.length === 0) {
+      setToast("Select at least one specialization for this technician.");
+      setTimeout(() => setToast(""), 3500);
+      return;
+    }
     setCreating(true);
     try {
-      const res = await adminApi.post("/vendor/auth/signup", {
+      const res = await adminApi.post("/admin/vendors", {
         fullName: newVendor.fullName,
         phone: newVendor.phone,
         email: newVendor.email || undefined,
-        password: newVendor.password || "Vendor@12345",
+        password: newVendor.password || undefined,
         role: newVendor.role,
-        specialization: newVendor.specialization,
+        specializations: newVendorSpecializations,
         experienceYears: Number(newVendor.experienceYears) || 0,
         city: newVendor.city,
         branchId: newVendor.branchId || undefined,
@@ -223,11 +234,11 @@ export function AdminVendorsPage() {
         email: "",
         password: "",
         role: "TECHNICIAN",
-        specialization: "RO & Water Purifier",
         experienceYears: "3",
         city: "Kolkata",
         branchId: branches[0]?.id || "",
       });
+      setNewVendorSpecializations(["RO & Water Purifier"]);
       load();
     } catch (err: any) {
       setToast(err?.response?.data?.message ?? "Unable to register technician. Check details.");
@@ -414,9 +425,23 @@ export function AdminVendorsPage() {
 
                   {/* Trade / Specialization */}
                   <td>
-                    <span className="inline-block rounded-md bg-orange-50 dark:bg-orange-950/80 px-2 py-0.5 text-[11px] font-bold text-[#c2410c] dark:text-orange-400 border border-orange-200 dark:border-orange-900">
-                      🔧 {vendor.specialization || "RO & Water Purifier"}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {(vendor.specializations?.length ? vendor.specializations : [vendor.specialization || "RO & Water Purifier"])
+                        .slice(0, 2)
+                        .map((s) => (
+                          <span
+                            key={s}
+                            className="inline-block rounded-md bg-orange-50 dark:bg-orange-950/80 px-2 py-0.5 text-[11px] font-bold text-[#c2410c] dark:text-orange-400 border border-orange-200 dark:border-orange-900"
+                          >
+                            🔧 {s}
+                          </span>
+                        ))}
+                      {(vendor.specializations?.length ?? 0) > 2 && (
+                        <span className="inline-block rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold text-gray-600 dark:text-gray-300">
+                          +{(vendor.specializations?.length ?? 0) - 2}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-gray-500 mt-0.5">
                       {vendor.experienceYears ? `${vendor.experienceYears} yrs exp` : "Certified Specialist"}
                     </p>
@@ -559,7 +584,7 @@ export function AdminVendorsPage() {
                   type="email"
                   value={newVendor.email}
                   onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })}
-                  placeholder="e.g. tech@rocare.in"
+                  placeholder="e.g. tech@just24you.in"
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -575,19 +600,9 @@ export function AdminVendorsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">Trade Specialization</label>
-                <select
-                  value={newVendor.specialization}
-                  onChange={(e) => setNewVendor({ ...newVendor, specialization: e.target.value })}
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="RO & Water Purifier">RO &amp; Water Purifier Specialist</option>
-                  <option value="Inverter Split AC">Inverter Split AC Technician</option>
-                  <option value="Refrigerator & Freezers">Refrigerator &amp; Freezers Specialist</option>
-                  <option value="Storage & Instant Geyser">Storage &amp; Instant Geyser Tech</option>
-                  <option value="Multi-Appliance Expert">Multi-Appliance Doorstep Expert</option>
-                </select>
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1.5">Trade Specialization(s)</label>
+                <SpecializationPicker value={newVendorSpecializations} onChange={setNewVendorSpecializations} accent="orange" />
               </div>
 
               <div>

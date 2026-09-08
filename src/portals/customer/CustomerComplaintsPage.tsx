@@ -154,7 +154,7 @@ export function CustomerComplaintsPage() {
               <p className="mt-3 text-xs font-medium text-gray-800 dark:text-gray-200">{c.description}</p>
               {c.reply && (
                 <div className="mt-4 rounded-xl bg-teal-50 dark:bg-teal-950/60 p-3.5 border border-teal-200 dark:border-teal-800">
-                  <p className="text-[11px] font-bold text-[#0f766e] dark:text-teal-400">ROCARE Support Supervisor Response:</p>
+                  <p className="text-[11px] font-bold text-[#0f766e] dark:text-teal-400">Just24You Support Supervisor Response:</p>
                   <p className="text-xs font-medium text-gray-900 dark:text-gray-100 mt-1">{c.reply}</p>
                 </div>
               )}

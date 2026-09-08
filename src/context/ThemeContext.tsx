@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem("rocare.theme");
+    const saved = localStorage.getItem("just24you.theme");
     if (saved === "light" || saved === "dark") return saved;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("rocare.theme", theme);
+    localStorage.setItem("just24you.theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

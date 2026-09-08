@@ -10,7 +10,7 @@ interface Setting {
 }
 
 const DEFAULT_SETTINGS: Setting[] = [
-  { key: "COIN_CONVERSION_RATE", value: "1.0", description: "Value of 1 ROCARE Wallet Coin in INR (₹)", category: "ECONOMY" },
+  { key: "COIN_CONVERSION_RATE", value: "1.0", description: "Value of 1 Just24You Wallet Coin in INR (₹)", category: "ECONOMY" },
   { key: "LEAD_ACCEPTANCE_DEFAULT_COINS", value: "50", description: "Default coins deducted from technician for accepting a verified doorstep lead", category: "ECONOMY" },
   { key: "GST_PERCENTAGE", value: "18", description: "Applicable GST percentage for spare part and AMC invoices", category: "BILLING" },
   { key: "CUSTOMER_SUPPORT_HELPLINE", value: "+91 93115 87744", description: "Toll-free / WhatsApp customer emergency helpline", category: "PLATFORM" },

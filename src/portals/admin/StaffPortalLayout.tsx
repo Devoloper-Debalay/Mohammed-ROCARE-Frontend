@@ -70,7 +70,7 @@ export function StaffPortalLayout() {
   // Helper for persistent read notification tracking
   const getReadNotificationIds = (): Set<string> => {
     try {
-      const stored = localStorage.getItem("rocare_admin_read_notifs");
+      const stored = localStorage.getItem("just24you_admin_read_notifs");
       return new Set(stored ? JSON.parse(stored) : []);
     } catch {
       return new Set();
@@ -81,7 +81,7 @@ export function StaffPortalLayout() {
     try {
       const set = getReadNotificationIds();
       set.add(id);
-      localStorage.setItem("rocare_admin_read_notifs", JSON.stringify(Array.from(set)));
+      localStorage.setItem("just24you_admin_read_notifs", JSON.stringify(Array.from(set)));
     } catch {}
   };
 
@@ -89,11 +89,11 @@ export function StaffPortalLayout() {
     try {
       const set = getReadNotificationIds();
       ids.forEach((id) => set.add(id));
-      localStorage.setItem("rocare_admin_read_notifs", JSON.stringify(Array.from(set)));
+      localStorage.setItem("just24you_admin_read_notifs", JSON.stringify(Array.from(set)));
     } catch {}
   };
 
-  // Fetch real-time notifications from ROCARE_backend
+  // Fetch real-time notifications from Just24You_backend
   const fetchAdminNotifications = useCallback(async () => {
     try {
       let fetchedList: AdminNotification[] = [];
@@ -278,7 +278,7 @@ export function StaffPortalLayout() {
             {sidebarOpen && (
               <div className="flex flex-col">
                 <span className="font-display text-base font-extrabold tracking-wider text-white">
-                  ROCARE<span className="text-[#0dcaf0]">LTE</span>
+                  Just24You<span className="text-[#0dcaf0]">LTE</span>
                 </span>
                 <span className="text-[10px] font-bold text-gray-400">Admin Operations v4.9</span>
               </div>
@@ -426,7 +426,7 @@ export function StaffPortalLayout() {
             className={`flex w-full items-center gap-2.5 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-400 px-3 py-2 text-xs font-bold transition-colors border border-red-500/20 ${
               !sidebarOpen ? "justify-center" : ""
             }`}
-            title="Sign out from ROCARE Admin"
+            title="Sign out from Just24You Admin"
           >
             <span>🚪</span>
             {sidebarOpen && <span>Sign Out</span>}
@@ -548,7 +548,7 @@ export function StaffPortalLayout() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
               <Link to="/staff/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400 font-bold">
-                ROCARE LTE
+                Just24You LTE
               </Link>
               <span>/</span>
               <span className="font-bold text-gray-900 dark:text-white capitalize">
@@ -557,7 +557,7 @@ export function StaffPortalLayout() {
             </div>
             <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>ROCARE Backend API Connected • Port 5000</span>
+              <span>Just24You Backend API Connected • Port 5000</span>
             </div>
           </div>
         </div>
@@ -570,7 +570,7 @@ export function StaffPortalLayout() {
         {/* AdminLTE 4 Footer */}
         <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-8 py-4 text-xs text-gray-600 dark:text-gray-400 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div>
-            <strong className="text-gray-900 dark:text-white">Copyright &copy; 2026 ROCARE Platform.</strong> All rights reserved.
+            <strong className="text-gray-900 dark:text-white">Copyright &copy; 2026 Just24You Platform.</strong> All rights reserved.
           </div>
           <div className="flex items-center gap-3">
             <span>Powered by <span className="font-bold text-blue-600">AdminLTE 4.9.1</span></span>
