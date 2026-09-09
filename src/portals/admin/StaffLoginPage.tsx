@@ -254,18 +254,18 @@ export function StaffLoginPage() {
                 </div>
               )}
 
-              {/* Email Address Field */}
+              {/* Username / Email Field */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Official Email Address
+                  Username
                 </label>
                 <div className="relative">
                   <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={role === "SADMIN" ? "superadmin@just24you.in" : "admin.dunlop@just24you.in"}
+                    placeholder={role === "SADMIN" ? "admin" : "admin.dunlop@just24you.in"}
                     className="w-full rounded-2xl bg-slate-800/90 border border-slate-700 px-4 py-3 pl-10 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
