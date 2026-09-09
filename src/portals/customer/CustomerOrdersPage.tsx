@@ -66,7 +66,7 @@ const DEFAULT_ORDERS: Order[] = [
     vendor: {
       id: "v-88",
       name: "Subhashish Roy (Just24You Logistics Hub)",
-      phone: "+91 90516 07464",
+      phone: "+91 22 6971 1316",
     },
   },
   {
@@ -199,7 +199,7 @@ export function CustomerOrdersPage() {
           serviceId={`ORD-${activeTrackingOrder.id.slice(0, 8)}`}
           serviceTitle={`Delivery Dispatch · ${activeTrackingOrder.orderType}`}
           vendorName={activeTrackingOrder.vendor?.name || "Subhashish Roy (Just24You Logistics Hub)"}
-          vendorPhone={activeTrackingOrder.vendor?.phone || "+91 90516 07464"}
+          vendorPhone={activeTrackingOrder.vendor?.phone || "+91 22 6971 1316"}
           initialStage={activeTrackingOrder.status}
         />
       )}

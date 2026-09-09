@@ -222,7 +222,7 @@ export function CustomerDashboardPage() {
           serviceId="SR-2026-08114"
           serviceTitle="Water Purifier (RO) & Appliance Service"
           vendorName="Subhashish Roy (Just24You India Certified Vendor)"
-          vendorPhone="+91 90516 07464"
+          vendorPhone="+91 22 6971 1316"
         />
       )}
 

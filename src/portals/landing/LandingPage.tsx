@@ -204,9 +204,12 @@ export function LandingPage() {
             <span className="hidden sm:inline text-emerald-300 font-bold">Rated 4.8/5 by 6,79,000+ Customers</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="tel:90516 07464" className="flex items-center gap-1.5 text-amber-300 hover:underline font-mono font-bold">
-              <span>📞 24/7 Helpline:</span> <span>90516 07464</span>
-            </a>
+            <span className="flex items-center gap-1.5 text-amber-300 font-mono font-bold">
+              <span>📞 24/7 Helpline:</span>
+              <a href="tel:+912269711316" className="hover:underline">+91 22 6971 1316</a>
+              <span>/</span>
+              <a href="tel:02269710975" className="hover:underline">022 6971 0975</a>
+            </span>
           </div>
         </div>
       </div>
@@ -694,7 +697,8 @@ export function LandingPage() {
               <a href="#services" className="hover:underline">Refrigerators</a>
               <a href="#services" className="hover:underline">Geysers</a>
               <a href="#amc-plans" className="hover:underline">AMC Plans</a>
-              <a href="tel:9051607464" className="text-amber-600 dark:text-amber-400">📞 90516 07464</a>
+              <a href="tel:+912269711316" className="text-amber-600 dark:text-amber-400">📞 +91 22 6971 1316</a>
+              <a href="tel:02269710975" className="text-amber-600 dark:text-amber-400">📞 022 6971 0975</a>
             </div>
           </div>
           <p className="text-center text-xs font-medium text-gray-600 dark:text-gray-400 mt-6">

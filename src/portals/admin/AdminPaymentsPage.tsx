@@ -20,7 +20,7 @@ const DEFAULT_PAYMENTS: PaymentRecord[] = [
   { id: "PAY-KOL-9021", amount: 1499, method: "UPI / QR", status: "PENDING", customerName: "Sourav Ganguly", customerPhone: "+91 98301 22981", referenceId: "UPI/2026/889102", orderId: "ORD-9021", createdAt: new Date().toISOString() },
   { id: "PAY-KOL-9022", amount: 2999, method: "Razorpay Gateway", status: "PAID", customerName: "Ananya Roy", customerPhone: "+91 98311 44092", referenceId: "pay_Roc991209", orderId: "ORD-9022", createdAt: new Date(Date.now() - 3600000).toISOString() },
   { id: "PAY-KOL-9023", amount: 650, method: "Technician Cash Handover", status: "PENDING", customerName: "Bimal Sen", customerPhone: "+91 98305 11094", referenceId: "CASH-REC-01", orderId: "ORD-9023", createdAt: new Date(Date.now() - 7200000).toISOString() },
-  { id: "PAY-KOL-9024", amount: 480, method: "Wallet Coin Debit", status: "PAID", customerName: "Subhashish Roy (Tech)", customerPhone: "+91 90516 07464", referenceId: "COIN-DB-480", createdAt: new Date(Date.now() - 14400000).toISOString() },
+  { id: "PAY-KOL-9024", amount: 480, method: "Wallet Coin Debit", status: "PAID", customerName: "Subhashish Roy (Tech)", customerPhone: "+91 22 6971 1316", referenceId: "COIN-DB-480", createdAt: new Date(Date.now() - 14400000).toISOString() },
 ];
 
 export function AdminPaymentsPage() {

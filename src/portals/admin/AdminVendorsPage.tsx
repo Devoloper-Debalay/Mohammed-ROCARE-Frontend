@@ -573,7 +573,7 @@ export function AdminVendorsPage() {
                   required
                   value={newVendor.phone}
                   onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })}
-                  placeholder="e.g. +91 9051607464"
+                  placeholder="e.g. +91 22 6971 1316"
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 text-xs font-semibold focus:border-blue-500 focus:outline-none"
                 />
               </div>

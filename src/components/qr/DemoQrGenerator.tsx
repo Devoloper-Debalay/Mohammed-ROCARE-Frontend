@@ -146,7 +146,7 @@ export function DemoQrGenerator({
           serviceId: "SR-2026-08114",
           serviceType: "RO Water Purifier Filter & Membrane Replacement",
           vendor: "Snehasish Das Mahapatra",
-          vendorPhone: "9051607464",
+          vendorPhone: "2269711316",
           customerAddress: "Block CF, Sector 1, Salt Lake, Kolkata",
           status: "ASSIGNED",
         })

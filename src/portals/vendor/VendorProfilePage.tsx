@@ -425,7 +425,7 @@ export function VendorProfilePage() {
                   value={form.phone}
                   onChange={handleInputChange("phone")}
                   required
-                  placeholder="e.g. +91 9051607464"
+                  placeholder="e.g. +91 22 6971 1316"
                 />
 
                 <Input
@@ -554,7 +554,7 @@ export function VendorProfilePage() {
                   label="UPI ID (GPay / PhonePe)"
                   value={form.upiId}
                   onChange={handleInputChange("upiId")}
-                  placeholder="e.g. 9051607464@paytm"
+                  placeholder="e.g. 2269711316@paytm"
                 />
               </div>
               <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">

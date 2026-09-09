@@ -395,7 +395,7 @@ export function StaffLoginPage() {
               <div className="rounded-xl bg-slate-800/60 p-3 border border-slate-700/50 space-y-2">
                 <p className="font-bold text-white">Master IT Helpdesk:</p>
                 <p className="font-mono text-blue-400">admin-support@just24you.in</p>
-                <p className="font-mono text-slate-400">+91 90516 07464 (HQ Desk)</p>
+                <p className="font-mono text-slate-400">+91 22 6971 1316 / 022 6971 0975 (HQ Desk)</p>
               </div>
             </div>
 

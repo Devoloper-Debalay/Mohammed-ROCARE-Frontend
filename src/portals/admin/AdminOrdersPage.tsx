@@ -392,7 +392,7 @@ export function AdminOrdersPage() {
           serviceTitle={`Order Delivery: ${selectedTrackingOrder.itemsSummary || "Parts Shipment"}`}
           customerAddress={selectedTrackingOrder.deliveryAddress || "Customer Delivery Destination"}
           vendorName={selectedTrackingOrder.assignedVendor?.fullName || "Delivery Fleet Agent"}
-          vendorPhone={selectedTrackingOrder.assignedVendor?.phone || "+91 9051607464"}
+          vendorPhone={selectedTrackingOrder.assignedVendor?.phone || "+91 22 6971 1316"}
         />
       )}
 

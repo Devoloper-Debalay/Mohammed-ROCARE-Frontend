@@ -185,7 +185,7 @@ export function CustomerServiceRequestsPage() {
           serviceId={trackingRequest.id}
           serviceTitle={trackingRequest.service?.name || "Doorstep Appliance Service"}
           vendorName="Verified Just24You Technician"
-          vendorPhone="+91 90516 07464"
+          vendorPhone="+91 22 6971 1316"
         />
       )}
 

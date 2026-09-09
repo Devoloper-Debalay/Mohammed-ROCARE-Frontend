@@ -128,7 +128,7 @@ export function CustomerPortalLayout() {
       accent="teal"
       portalLabel="Just24You Customer Portal"
       userLabel={fullName}
-      userMeta={user?.phone || user?.email || "+91 90516 07464"}
+      userMeta={user?.phone || user?.email || "+91 22 6971 1316"}
       userBadge={
         <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase border whitespace-nowrap ${tierBadge.style}`}>
           {tierBadge.label}

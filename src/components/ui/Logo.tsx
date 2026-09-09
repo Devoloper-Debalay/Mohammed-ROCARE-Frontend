@@ -8,7 +8,7 @@ export function Logo({ size = 32 }: { size?: number }) {
         className="drop-shadow-sm"
       />
       <span className="text-[9px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">
-        RO • AC • Fridge • Geyser
+        Just24You
       </span>
     </div>
   );
