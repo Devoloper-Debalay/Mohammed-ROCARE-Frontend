@@ -97,7 +97,7 @@ export function StaffLoginPage() {
       setSession({ token, user });
 
       setTimeout(() => {
-        navigate(user?.role === "SADMIN" ? "/staff/super-admin" : "/staff/dashboard");
+        navigate(user?.role === "SADMIN" ? "/admin/super-admin" : "/admin/dashboard");
       }, 500);
     } catch (err) {
       setError(

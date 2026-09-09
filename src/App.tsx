@@ -116,7 +116,7 @@ function StaffRoutes() {
       <Route path="login" element={<StaffLoginPage />} />
       <Route
         element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} redirectTo="/staff/login">
+          <ProtectedRoute isAuthenticated={isAuthenticated} redirectTo="/admin/login">
             <StaffPortalLayout />
           </ProtectedRoute>
         }
@@ -130,15 +130,15 @@ function StaffRoutes() {
         <Route path="wallet" element={<AdminWalletPage />} />
         <Route path="complaints" element={<AdminComplaintsPage />} />
 
-        <Route path="super-admin" element={isSuperAdmin ? <SuperAdminDashboardPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/branches" element={isSuperAdmin ? <SuperAdminBranchesPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/admins" element={isSuperAdmin ? <SuperAdminAdminsPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/users" element={isSuperAdmin ? <SuperAdminUsersPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/audit-logs" element={isSuperAdmin ? <SuperAdminAuditLogsPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/settings" element={isSuperAdmin ? <SuperAdminSettingsPage /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route path="super-admin/reports" element={isSuperAdmin ? <SuperAdminReportsPage /> : <Navigate to="/staff/dashboard" replace />} />
+        <Route path="super-admin" element={isSuperAdmin ? <SuperAdminDashboardPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/branches" element={isSuperAdmin ? <SuperAdminBranchesPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/admins" element={isSuperAdmin ? <SuperAdminAdminsPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/users" element={isSuperAdmin ? <SuperAdminUsersPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/audit-logs" element={isSuperAdmin ? <SuperAdminAuditLogsPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/settings" element={isSuperAdmin ? <SuperAdminSettingsPage /> : <Navigate to="/admin/dashboard" replace />} />
+        <Route path="super-admin/reports" element={isSuperAdmin ? <SuperAdminReportsPage /> : <Navigate to="/admin/dashboard" replace />} />
       </Route>
-      <Route path="*" element={<Navigate to={isAuthenticated ? (isSuperAdmin ? "/staff/super-admin" : "/staff/dashboard") : "/staff/login"} replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? (isSuperAdmin ? "/admin/super-admin" : "/admin/dashboard") : "/admin/login"} replace />} />
     </Routes>
   );
 }
@@ -147,12 +147,12 @@ export default function App() {
   return (
     <ThemeProvider>
       <ErrorBoundary>
-        <BrowserRouter>
+        <BrowserRouter basename="/ecommerce">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/customer/*" element={<CustomerRoutes />} />
             <Route path="/vendor/*" element={<VendorRoutes />} />
-            <Route path="/staff/*" element={<StaffRoutes />} />
+            <Route path="/admin/*" element={<StaffRoutes />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

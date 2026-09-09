@@ -191,7 +191,7 @@ export function AdminDashboardPage() {
           value={`${activeVendors} Online`}
           icon="🛵"
           tone="success"
-          linkTo="/staff/vendors"
+          linkTo="/admin/vendors"
           linkText="Manage technician fleet"
         />
         <AdminLteSmallBox
@@ -199,7 +199,7 @@ export function AdminDashboardPage() {
           value={`${totalVendorCoins.toLocaleString()} Coins`}
           icon="🪙"
           tone="warning"
-          linkTo="/staff/wallet"
+          linkTo="/admin/wallet"
           linkText="Manage technician balances"
         />
         <AdminLteSmallBox
@@ -207,7 +207,7 @@ export function AdminDashboardPage() {
           value={pendingGeotags}
           icon="📍"
           tone="primary"
-          linkTo="/staff/leads"
+          linkTo="/admin/leads"
           linkText="Verify arrival photos"
         />
         <AdminLteSmallBox
@@ -215,7 +215,7 @@ export function AdminDashboardPage() {
           value={`₹${revenueAmount.toLocaleString("en-IN")}`}
           icon="💰"
           tone="teal"
-          linkTo="/staff/payments"
+          linkTo="/admin/payments"
           linkText="View payment reconciliations"
         />
       </div>
@@ -257,7 +257,7 @@ export function AdminDashboardPage() {
           outlineTone="warning"
           badge={{ text: `${pendingVendors.length} Pending`, tone: "warning" }}
           tools={
-            <Link to="/staff/vendors" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+            <Link to="/admin/vendors" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
               View All →
             </Link>
           }
@@ -327,7 +327,7 @@ export function AdminDashboardPage() {
           outlineTone="primary"
           badge={{ text: `${pendingProofs.length} Geotags`, tone: "primary" }}
           tools={
-            <Link to="/staff/leads" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+            <Link to="/admin/leads" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
               Inspect Pipeline →
             </Link>
           }

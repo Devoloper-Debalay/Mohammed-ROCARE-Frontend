@@ -78,13 +78,13 @@ export function SuperAdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to="/staff/super-admin/reports"
+            to="/admin/super-admin/reports"
             className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
           >
             <span>📑</span> Financial Reports
           </Link>
           <Link
-            to="/staff/super-admin/branches"
+            to="/admin/super-admin/branches"
             className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
           >
             <span>🏢</span> Add Branch Hub
@@ -99,7 +99,7 @@ export function SuperAdminDashboardPage() {
           value={totalRegisteredCustomers.toLocaleString("en-IN")}
           icon="👤"
           tone="primary"
-          linkTo="/staff/super-admin/users"
+          linkTo="/admin/super-admin/users"
           linkText="Manage customer accounts"
         />
         <AdminLteSmallBox
@@ -107,7 +107,7 @@ export function SuperAdminDashboardPage() {
           value={`${totalVendors} Technicians`}
           icon="🛵"
           tone="success"
-          linkTo="/staff/vendors"
+          linkTo="/admin/vendors"
           linkText="Inspect verified fleet"
         />
         <AdminLteSmallBox
@@ -115,7 +115,7 @@ export function SuperAdminDashboardPage() {
           value={totalServiceRequests.toLocaleString("en-IN")}
           icon="🔧"
           tone="teal"
-          linkTo="/staff/orders"
+          linkTo="/admin/orders"
           linkText="All service orders"
         />
         <AdminLteSmallBox
@@ -123,7 +123,7 @@ export function SuperAdminDashboardPage() {
           value={totalPaidTransactions.toLocaleString("en-IN")}
           icon="💰"
           tone="warning"
-          linkTo="/staff/payments"
+          linkTo="/admin/payments"
           linkText="Reconciliation ledger"
         />
       </div>
@@ -163,7 +163,7 @@ export function SuperAdminDashboardPage() {
         outlineTone="primary"
         tools={
           <Link
-            to="/staff/super-admin/branches"
+            to="/admin/super-admin/branches"
             className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
           >
             Manage All Branches →
@@ -214,7 +214,7 @@ export function SuperAdminDashboardPage() {
                 </td>
                 <td className="py-3.5 px-4 text-right">
                   <Link
-                    to="/staff/super-admin/branches"
+                    to="/admin/super-admin/branches"
                     className="rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-100 px-2.5 py-1 font-bold text-[11px] transition-colors"
                   >
                     Configure Hub

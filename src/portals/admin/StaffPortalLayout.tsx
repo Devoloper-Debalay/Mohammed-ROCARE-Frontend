@@ -23,24 +23,24 @@ export interface AdminNotification {
 }
 
 const MAIN_NAV_ITEMS: NavItem[] = [
-  { to: "/staff/dashboard", label: "Dashboard Overview", icon: "📊" },
-  { to: "/staff/vendors", label: "Technicians & KYC", icon: "👨‍🔧", badge: { text: "KYC", tone: "warning" } },
-  { to: "/staff/leads", label: "Leads & Geotag Proofs", icon: "🎯", badge: { text: "Proofs", tone: "primary" } },
-  { to: "/staff/orders", label: "Orders & Fleet Radar", icon: "📦" },
-  { to: "/staff/payments", label: "Payment Verification", icon: "💳", badge: { text: "Review", tone: "info" } },
-  { to: "/staff/catalog", label: "Catalog & AMC Services", icon: "🏷️" },
-  { to: "/staff/wallet", label: "Wallet Coin Management", icon: "💰" },
-  { to: "/staff/complaints", label: "Complaints & Tickets", icon: "🛡️" },
+  { to: "/admin/dashboard", label: "Dashboard Overview", icon: "📊" },
+  { to: "/admin/vendors", label: "Technicians & KYC", icon: "👨‍🔧", badge: { text: "KYC", tone: "warning" } },
+  { to: "/admin/leads", label: "Leads & Geotag Proofs", icon: "🎯", badge: { text: "Proofs", tone: "primary" } },
+  { to: "/admin/orders", label: "Orders & Fleet Radar", icon: "📦" },
+  { to: "/admin/payments", label: "Payment Verification", icon: "💳", badge: { text: "Review", tone: "info" } },
+  { to: "/admin/catalog", label: "Catalog & AMC Services", icon: "🏷️" },
+  { to: "/admin/wallet", label: "Wallet Coin Management", icon: "💰" },
+  { to: "/admin/complaints", label: "Complaints & Tickets", icon: "🛡️" },
 ];
 
 const SUPER_ADMIN_NAV_ITEMS: NavItem[] = [
-  { to: "/staff/super-admin", label: "Executive Analytics", icon: "📈", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/branches", label: "Branch Offices Network", icon: "🏢", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/admins", label: "Admin Staff Accounts", icon: "👥", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/users", label: "Customer User Directory", icon: "👤", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/settings", label: "Platform Settings & Rates", icon: "⚙️", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/audit-logs", label: "Security & Audit Trail", icon: "📜", isSuperAdminOnly: true },
-  { to: "/staff/super-admin/reports", label: "Financial Reports & Exports", icon: "📑", isSuperAdminOnly: true },
+  { to: "/admin/super-admin", label: "Executive Analytics", icon: "📈", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/branches", label: "Branch Offices Network", icon: "🏢", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/admins", label: "Admin Staff Accounts", icon: "👥", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/users", label: "Customer User Directory", icon: "👤", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/settings", label: "Platform Settings & Rates", icon: "⚙️", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/audit-logs", label: "Security & Audit Trail", icon: "📜", isSuperAdminOnly: true },
+  { to: "/admin/super-admin/reports", label: "Financial Reports & Exports", icon: "📑", isSuperAdminOnly: true },
 ];
 
 export function StaffPortalLayout() {
@@ -132,7 +132,7 @@ export function StaffPortalLayout() {
               message: `${pendingKyc.slice(0, 2).map((k) => k.fullName).join(", ")}${pendingKyc.length > 2 ? ` and ${pendingKyc.length - 2} more` : ""} uploaded Aadhaar / PAN documents.`,
               type: "KYC",
               isRead: false,
-              link: "/staff/vendors",
+              link: "/admin/vendors",
               createdAt: new Date().toISOString(),
             });
           }
@@ -148,7 +148,7 @@ export function StaffPortalLayout() {
               message: `Technicians have arrived at doorstep customer locations with geotag photos.`,
               type: "START_PROOF",
               isRead: false,
-              link: "/staff/leads",
+              link: "/admin/leads",
               createdAt: new Date().toISOString(),
             });
           }
@@ -164,7 +164,7 @@ export function StaffPortalLayout() {
               message: `Technicians reported customer unavailable at premises. Coin refund review needed.`,
               type: "DENIAL_PROOF",
               isRead: false,
-              link: "/staff/leads",
+              link: "/admin/leads",
               createdAt: new Date().toISOString(),
             });
           }
@@ -181,7 +181,7 @@ export function StaffPortalLayout() {
               message: `Digital bank settlements awaiting administrative reconciliation.`,
               type: "PAYMENT",
               isRead: false,
-              link: "/staff/payments",
+              link: "/admin/payments",
               createdAt: new Date().toISOString(),
             });
           }
@@ -198,7 +198,7 @@ export function StaffPortalLayout() {
               message: `Customer complaints requiring immediate resolution.`,
               type: "COMPLAINT",
               isRead: false,
-              link: "/staff/complaints",
+              link: "/admin/complaints",
               createdAt: new Date().toISOString(),
             });
           }
@@ -271,7 +271,7 @@ export function StaffPortalLayout() {
       >
         {/* Brand Header */}
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-700/60 px-4">
-          <Link to={isSuperAdmin ? "/staff/super-admin" : "/staff/dashboard"} className="flex items-center gap-3 overflow-hidden">
+          <Link to={isSuperAdmin ? "/admin/super-admin" : "/admin/dashboard"} className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#0d6efd] to-[#0dcaf0] text-white font-extrabold text-lg shadow-md">
               R
             </div>
@@ -421,7 +421,7 @@ export function StaffPortalLayout() {
           <button
             onClick={() => {
               logout();
-              navigate("/staff/login");
+              navigate("/admin/login");
             }}
             className={`flex w-full items-center gap-2.5 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-400 px-3 py-2 text-xs font-bold transition-colors border border-red-500/20 ${
               !sidebarOpen ? "justify-center" : ""
@@ -519,7 +519,7 @@ export function StaffPortalLayout() {
                   <div className="pt-2 space-y-1">
                     {isSuperAdmin && (
                       <Link
-                        to="/staff/super-admin/settings"
+                        to="/admin/super-admin/settings"
                         onClick={() => setShowUserDropdown(false)}
                         className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
@@ -530,7 +530,7 @@ export function StaffPortalLayout() {
                       onClick={() => {
                         setShowUserDropdown(false);
                         logout();
-                        navigate("/staff/login");
+                        navigate("/admin/login");
                       }}
                       className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
                     >
@@ -547,12 +547,12 @@ export function StaffPortalLayout() {
         <div className="border-b border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 px-4 sm:px-8 py-3.5 backdrop-blur-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Link to="/staff/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400 font-bold">
+              <Link to="/admin/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400 font-bold">
                 Just24You LTE
               </Link>
               <span>/</span>
               <span className="font-bold text-gray-900 dark:text-white capitalize">
-                {location.pathname.replace("/staff/", "").replace("/", " → ") || "Dashboard"}
+                {location.pathname.replace("/admin/", "").replace("/", " → ") || "Dashboard"}
               </span>
             </div>
             <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">

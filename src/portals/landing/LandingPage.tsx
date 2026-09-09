@@ -630,7 +630,7 @@ export function LandingPage() {
             {
               title: "Admin & Operations Portal",
               desc: "Manage branch queues, dispatch field fleet, verify geotagged photos, and oversee platform analytics end to end.",
-              to: "/staff/login",
+              to: "/admin/login",
               icon: "🏢",
               badge: "Staff & Admins",
               accent: "slate",

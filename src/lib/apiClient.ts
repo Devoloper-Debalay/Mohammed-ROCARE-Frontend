@@ -87,7 +87,10 @@ export function createApiClient(portal: PortalKey): AxiosInstance {
         // Only kick user to login if their core session auth token check actually failed
         if (isAuthCheck || !portalStorage.getToken(portal)) {
           portalStorage.clear(portal);
-          const loginPath = portal === "customer" ? "/customer/login" : portal === "vendor" ? "/vendor/login" : "/staff/login";
+          // Must match the BrowserRouter basename in App.tsx — this redirect
+          // bypasses React Router entirely, so it needs the deploy prefix itself.
+          const basePath = "/ecommerce";
+          const loginPath = basePath + (portal === "customer" ? "/customer/login" : portal === "vendor" ? "/vendor/login" : "/admin/login");
           if (window.location.pathname !== loginPath) {
             window.location.href = loginPath;
           }

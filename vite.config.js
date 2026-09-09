@@ -2,11 +2,18 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 // https://vite.dev/config/
-export default defineConfig({
-    plugins: [react()],
-    resolve: {
-        alias: {
-            '@': path.resolve(__dirname, './src'),
+export default defineConfig(function (_a) {
+    var command = _a.command;
+    return ({
+        // Production is served from https://just24you.com/ecommerce/, not the
+        // domain root, so built asset URLs need that prefix. Dev server stays at
+        // root so `npm run dev` is unaffected.
+        base: command === 'build' ? '/ecommerce/' : '/',
+        plugins: [react()],
+        resolve: {
+            alias: {
+                '@': path.resolve(__dirname, './src'),
+            },
         },
-    },
+    });
 });
